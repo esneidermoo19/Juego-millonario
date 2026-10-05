@@ -1,1 +1,371 @@
+/* =========================================================
+   MILLIONAIRE GAME - DESIGN SYSTEM & GLOBAL STYLES
+   Colores: Fondo azul oscuro, Dorado para dinero, Rosa/Morado para botones
+   ========================================================= */
 
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+  /* Fondo y Superficies */
+  --bg-dark: #070b19;
+  --bg-secondary: #0d152d;
+  --bg-card: rgba(15, 23, 49, 0.85);
+  --bg-card-hover: rgba(22, 34, 70, 0.9);
+  --bg-glass: rgba(255, 255, 255, 0.04);
+
+  /* Acentos de Dinero (Dorado) */
+  --gold-primary: #f5b041;
+  --gold-secondary: #f39c12;
+  --gold-light: #fef5d1;
+  --gold-glow: 0 0 20px rgba(243, 156, 18, 0.45);
+  --gold-gradient: linear-gradient(135deg, #f39c12 0%, #f1c40f 50%, #f39c12 100%);
+
+  /* Botones de Acción (Rosa / Morado) */
+  --btn-purple: #8b5cf6;
+  --btn-pink: #ec4899;
+  --btn-gradient: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
+  --btn-glow: 0 0 20px rgba(236, 72, 153, 0.4);
+  --btn-gradient-hover: linear-gradient(135deg, #9333ea 0%, #db2777 100%);
+
+  /* Estados de Validación */
+  --success-green: #10b981;
+  --success-glow: 0 0 25px rgba(16, 185, 129, 0.7);
+  --danger-red: #ef4444;
+  --danger-glow: 0 0 25px rgba(239, 68, 68, 0.7);
+
+  /* Texto */
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --text-gold: #facc15;
+
+  /* Bordes & Sombras */
+  --border-subtle: 1px solid rgba(255, 255, 255, 0.08);
+  --border-gold: 1px solid rgba(241, 196, 15, 0.35);
+  --border-purple: 1px solid rgba(168, 85, 247, 0.4);
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --shadow-lg: 0 12px 40px 0 rgba(0, 0, 0, 0.6);
+
+  --font-family: 'Outfit', 'Inter', system-ui, -apple-system, sans-serif;
+  --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-family);
+  background-color: var(--bg-dark);
+  background-image: 
+    radial-gradient(circle at 50% 0%, rgba(139, 92, 246, 0.22) 0%, transparent 55%),
+    radial-gradient(circle at 90% 90%, rgba(243, 156, 18, 0.12) 0%, transparent 45%),
+    radial-gradient(circle at 10% 80%, rgba(236, 72, 153, 0.12) 0%, transparent 45%);
+  color: var(--text-main);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.5;
+  overflow-x: hidden;
+}
+
+/* Layout Principal */
+.app-container {
+  width: 100%;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 1.5rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Tarjeta Glassmorphism */
+.glass-card {
+  background: var(--bg-card);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: var(--border-subtle);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  position: relative;
+  overflow: hidden;
+}
+
+.glass-card.gold-border {
+  border: var(--border-gold);
+}
+
+/* Botones Principales (Rosa / Morado) */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 0.9rem 1.8rem;
+  font-family: var(--font-family);
+  font-size: 1.05rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: var(--transition);
+  text-decoration: none;
+  border: none;
+  outline: none;
+  user-select: none;
+}
+
+.btn-primary {
+  background: var(--btn-gradient);
+  color: #ffffff;
+  box-shadow: var(--btn-glow);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--btn-gradient-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 0 30px rgba(236, 72, 153, 0.65);
+}
+
+.btn-gold {
+  background: var(--gold-gradient);
+  color: #0b0f19;
+  box-shadow: var(--gold-glow);
+}
+
+.btn-gold:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 0 32px rgba(243, 156, 18, 0.7);
+}
+
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--text-main);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+}
+
+.btn-danger {
+  background: rgba(239, 68, 68, 0.15);
+  color: #fca5a5;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.3);
+  color: #fff;
+  border-color: #ef4444;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* Inputs */
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  text-align: left;
+  width: 100%;
+}
+
+.input-label {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.input-field {
+  width: 100%;
+  padding: 1rem 1.25rem;
+  background: rgba(10, 16, 35, 0.8);
+  border: 1px solid rgba(168, 85, 247, 0.35);
+  border-radius: var(--radius-md);
+  color: #ffffff;
+  font-family: var(--font-family);
+  font-size: 1.15rem;
+  font-weight: 500;
+  outline: none;
+  transition: var(--transition);
+}
+
+.input-field:focus {
+  border-color: var(--btn-pink);
+  box-shadow: 0 0 18px rgba(236, 72, 153, 0.35);
+}
+
+.input-field::placeholder {
+  color: #64748b;
+}
+
+/* Encabezado y Marca */
+.header-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 0 1.5rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  margin-bottom: 1.5rem;
+}
+
+.brand-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  text-decoration: none;
+  font-size: 1.6rem;
+  font-weight: 900;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+
+.brand-logo .logo-gold {
+  background: var(--gold-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.brand-logo .logo-pink {
+  background: var(--btn-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Sistema de Alertas & Notificaciones Flotantes (Toasts) */
+.toast-container {
+  position: fixed;
+  top: 1.5rem;
+  right: 1.5rem;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-width: 420px;
+  width: calc(100% - 3rem);
+  pointer-events: none;
+}
+
+.toast {
+  pointer-events: auto;
+  padding: 1rem 1.25rem;
+  border-radius: var(--radius-sm);
+  background: rgba(15, 23, 49, 0.95);
+  backdrop-filter: blur(12px);
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 500;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border-left: 4px solid var(--btn-pink);
+  animation: slideInRight 0.3s ease-out forwards;
+}
+
+.toast.toast-error {
+  border-left-color: var(--danger-red);
+  background: rgba(40, 10, 15, 0.95);
+}
+
+.toast.toast-success {
+  border-left-color: var(--success-green);
+  background: rgba(10, 35, 20, 0.95);
+}
+
+.toast.toast-warning {
+  border-left-color: var(--gold-primary);
+  background: rgba(35, 25, 10, 0.95);
+}
+
+/* Modales Base */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(3, 7, 18, 0.82);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+  z-index: 1000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease-out;
+}
+
+.modal-backdrop.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.modal-dialog {
+  background: var(--bg-card);
+  border: var(--border-purple);
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+  max-width: 540px;
+  width: 100%;
+  box-shadow: var(--shadow-lg), 0 0 40px rgba(139, 92, 246, 0.2);
+  transform: scale(0.92);
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.modal-backdrop.active .modal-dialog {
+  transform: scale(1);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.25rem;
+}
+
+.modal-title {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--gold-light);
+}
+
+.modal-close-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0.25rem;
+  line-height: 1;
+  transition: var(--transition);
+}
+
+.modal-close-btn:hover {
+  color: #fff;
+  transform: scale(1.15);
+}
+
+/* Pie de página */
+.footer-bar {
+  margin-top: auto;
+  padding: 1.5rem 0 0.5rem 0;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}

@@ -1,1 +1,113 @@
+/* =========================================================
+   RANKING & LEADERBOARD STYLES (ranking.html)
+   ========================================================= */
 
+.ranking-card {
+  padding: 2rem;
+  max-width: 850px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.ranking-header-title {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.ranking-header-title h1 {
+  font-size: 2.2rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  background: var(--gold-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 0.5rem;
+}
+
+.ranking-header-title p {
+  color: var(--text-muted);
+  font-size: 1rem;
+}
+
+.ranking-table-wrapper {
+  overflow-x: auto;
+  border-radius: var(--radius-md);
+  background: rgba(10, 16, 35, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.ranking-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.ranking-table th {
+  background: rgba(168, 85, 247, 0.12);
+  color: var(--gold-light);
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  letter-spacing: 1px;
+  padding: 1.1rem 1.5rem;
+  border-bottom: 2px solid rgba(168, 85, 247, 0.3);
+}
+
+.ranking-table td {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  font-weight: 600;
+  font-size: 1.05rem;
+  color: var(--text-main);
+  transition: var(--transition);
+}
+
+.ranking-table tr:hover td {
+  background: rgba(168, 85, 247, 0.08);
+}
+
+/* Badges de Podio */
+.rank-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  font-weight: 900;
+  font-size: 1.1rem;
+}
+
+.rank-top-1 {
+  background: var(--gold-gradient);
+  color: #0b0f19;
+  box-shadow: var(--gold-glow);
+}
+
+.rank-top-2 {
+  background: linear-gradient(135deg, #cbd5e1, #94a3b8);
+  color: #0f172a;
+}
+
+.rank-top-3 {
+  background: linear-gradient(135deg, #d97706, #b45309);
+  color: #ffffff;
+}
+
+.rank-other {
+  background: rgba(255, 255, 255, 0.08);
+  color: #94a3b8;
+  font-size: 0.95rem;
+}
+
+.prize-highlight {
+  color: var(--gold-primary);
+  font-weight: 800;
+  font-size: 1.15rem;
+}
+
+.empty-ranking {
+  text-align: center;
+  padding: 3rem 1.5rem;
+  color: var(--text-muted);
+}
