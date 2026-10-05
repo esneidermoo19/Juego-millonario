@@ -1,25 +1,7 @@
 /**
  * Controlador de la Pantalla Principal (index.html)
+ * Requiere: utils.js (showToast), api.js
  */
-
-function showToast(message, type = 'error') {
-  const container = document.getElementById('toast-container');
-  if (!container) return;
-
-  const toast = document.createElement('div');
-  toast.className = `toast toast-${type}`;
-  toast.innerHTML = `
-    <span>${type === 'error' ? '⚠️' : type === 'success' ? '✅' : 'ℹ️'}</span>
-    <span>${message}</span>
-  `;
-  container.appendChild(toast);
-
-  setTimeout(() => {
-    toast.style.opacity = '0';
-    toast.style.transform = 'translateX(100%)';
-    setTimeout(() => toast.remove(), 300);
-  }, 4000);
-}
 
 document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('start-game-form');
