@@ -124,8 +124,16 @@ function restoreProgress() {
 
 function clearProgress() {
   sessionStorage.removeItem(PROGRESS_KEY);
+  sessionStorage.removeItem('game_id');
   sessionStorage.removeItem('game_result');
 }
+
+// Proteger la navegación con el botón "Atrás" del navegador (bfcache)
+window.addEventListener('pageshow', (event) => {
+  if (event.persisted && (!sessionStorage.getItem('game_id') || !sessionStorage.getItem('player_id'))) {
+    window.location.href = 'index.html';
+  }
+});
 // ────────────────────────────────────────────────────────────────────────
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -305,20 +313,38 @@ function setupOptionListeners() {
 
           if (result.game_finished) {
             // ¡Victoria Total! (Llegó a la última pregunta)
-            // TAREA 4: Si finish falla, aún así redirigir como victoria
-            clearProgress(); // TAREA 2: limpiar progreso al terminar
-            try {
-              await window.api.finish(gameState.gameId, true);
-            } catch (finishErr) {
-              console.warn('api.finish falló tras victoria, redirigiendo igualmente:', finishErr);
+            clearProgress(); // Limpiar progreso y game_id al terminar
+
+            // Reintentar finish hasta 3 veces si falla por problemas de red
+            let finishSuccess = false;
+            const maxRetries = 3;
+
+            for (let attempt = 1; attempt <= maxRetries; attempt++) {
+              try {
+                await window.api.finish(gameState.gameId, true);
+                finishSuccess = true;
+                break;
+              } catch (finishErr) {
+                console.warn(`api.finish intento ${attempt}/${maxRetries} falló:`, finishErr);
+                if (attempt < maxRetries) {
+                  await new Promise(res => setTimeout(res, 600));
+                }
+              }
             }
+
+            if (!finishSuccess) {
+              showToast('⚠️ No se pudo registrar tu victoria en el ranking por un error de conexión con el servidor.', 'warning');
+            }
+
             sessionStorage.setItem('game_result', JSON.stringify({
               type: 'win',
               player: gameState.playerName,
               prize: formatCurrency(result.prize || gameState.currentPrize),
               cleared: gameState.questionIndex + 1
             }));
-            setTimeout(() => window.location.href = 'results.html', 1400);
+
+            const redirectDelay = finishSuccess ? 1400 : 3200;
+            setTimeout(() => window.location.href = 'results.html', redirectDelay);
           } else {
             // Avanzar a la siguiente pregunta
             setTimeout(() => {
