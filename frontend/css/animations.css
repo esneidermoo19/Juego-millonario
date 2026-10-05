@@ -1,1 +1,115 @@
+/* =========================================================
+   ANIMATIONS & MICRO-INTERACTIONS
+   ========================================================= */
 
+@keyframes pulseGlowGold {
+  0%, 100% {
+    box-shadow: 0 0 15px rgba(243, 156, 18, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 35px rgba(243, 156, 18, 0.85), 0 0 50px rgba(241, 196, 15, 0.4);
+  }
+}
+
+@keyframes pulseGlowPink {
+  0%, 100% {
+    box-shadow: 0 0 15px rgba(236, 72, 153, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 35px rgba(236, 72, 153, 0.8), 0 0 45px rgba(168, 85, 247, 0.45);
+  }
+}
+
+@keyframes correctFlash {
+  0%, 100% {
+    background: #059669 !important;
+    border-color: #34d399 !important;
+    box-shadow: 0 0 30px rgba(52, 211, 153, 0.9) !important;
+    color: #ffffff !important;
+  }
+  50% {
+    background: #064e3b !important;
+    border-color: #10b981 !important;
+  }
+}
+
+@keyframes incorrectFlash {
+  0%, 100% {
+    background: #dc2626 !important;
+    border-color: #f87171 !important;
+    box-shadow: 0 0 30px rgba(248, 113, 113, 0.9) !important;
+    color: #ffffff !important;
+  }
+  50% {
+    background: #7f1d1d !important;
+    border-color: #ef4444 !important;
+  }
+}
+
+@keyframes selectedOptionGlow {
+  0%, 100% {
+    background: rgba(243, 156, 18, 0.25);
+    border-color: #f39c12;
+    box-shadow: 0 0 20px rgba(243, 156, 18, 0.6);
+  }
+  50% {
+    background: rgba(243, 156, 18, 0.45);
+    border-color: #f1c40f;
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes floatLogo {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes growBar {
+  from {
+    height: 0%;
+  }
+  to {
+    height: var(--target-height);
+  }
+}
+
+.anim-fade-in {
+  animation: fadeInUp 0.45s ease-out forwards;
+}
+
+.anim-floating {
+  animation: floatLogo 3.5s ease-in-out infinite;
+}
+
+.anim-pulse-gold {
+  animation: pulseGlowGold 2s infinite ease-in-out;
+}
+
+.anim-pulse-pink {
+  animation: pulseGlowPink 2s infinite ease-in-out;
+}

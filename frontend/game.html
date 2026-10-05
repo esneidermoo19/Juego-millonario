@@ -1,1 +1,155 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>¿Quién Quiere Ser Millonario? — Partida en Curso</title>
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/game.css">
+  <link rel="stylesheet" href="css/animations.css">
+</head>
+<body>
+  <!-- Contenedor para notificaciones y alertas -->
+  <div id="toast-container" class="toast-container"></div>
 
+  <div class="app-container">
+    <!-- Encabezado del Juego con Estadísticas en Vivo -->
+    <header class="game-header">
+      <div class="game-stat-group">
+        <div class="stat-item">
+          <span class="stat-label">Jugador</span>
+          <span id="player-display" class="stat-value">Cargando...</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Pregunta</span>
+          <span id="question-num-display" class="stat-value">1 / 15</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Premio Acumulado</span>
+          <span id="prize-display" class="stat-value gold">$0</span>
+        </div>
+      </div>
+
+      <button id="btn-quit" class="btn btn-danger" style="padding: 0.65rem 1.25rem; font-size: 0.95rem;">
+        🚪 Retirarse
+      </button>
+    </header>
+
+    <!-- Arena Principal de Juego -->
+    <main class="game-arena">
+      <div class="arena-main">
+        <!-- Panel de Comodines -->
+        <div class="lifelines-panel">
+          <button id="lifeline-5050" class="lifeline-btn" title="Eliminar 2 opciones incorrectas">
+            <span class="lifeline-icon">⚖️</span>
+            <span>50:50</span>
+          </button>
+          <button id="lifeline-audience" class="lifeline-btn" title="Consultar al público">
+            <span class="lifeline-icon">📊</span>
+            <span>Público</span>
+          </button>
+          <button id="lifeline-friend" class="lifeline-btn" title="Llamar a un amigo">
+            <span class="lifeline-icon">📞</span>
+            <span>Amigo</span>
+          </button>
+        </div>
+
+        <!-- Pregunta Actual -->
+        <div class="question-card anim-fade-in" id="question-card">
+          <span id="question-text">Cargando pregunta...</span>
+        </div>
+
+        <!-- Opciones A, B, C, D -->
+        <div class="options-container" id="options-container">
+          <button class="option-btn" data-option="A">
+            <span class="option-badge">A</span>
+            <span class="option-text">...</span>
+          </button>
+          <button class="option-btn" data-option="B">
+            <span class="option-badge">B</span>
+            <span class="option-text">...</span>
+          </button>
+          <button class="option-btn" data-option="C">
+            <span class="option-badge">C</span>
+            <span class="option-text">...</span>
+          </button>
+          <button class="option-btn" data-option="D">
+            <span class="option-badge">D</span>
+            <span class="option-text">...</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Barra Lateral: Escalera de Premios / Dinero -->
+      <aside class="glass-card gold-border ladder-sidebar">
+        <div class="ladder-header">💰 Escala de Premios</div>
+        <div class="ladder-list" id="ladder-list">
+          <!-- Generado dinámicamente en game.js -->
+        </div>
+      </aside>
+    </main>
+
+    <!-- Modal Comodín: Consulta al Público -->
+    <div id="modal-audience" class="modal-backdrop">
+      <div class="modal-dialog">
+        <div class="modal-header">
+          <h2 class="modal-title">📊 Votación de la Audiencia</h2>
+          <button class="modal-close-btn" data-close="modal-audience">&times;</button>
+        </div>
+        <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 1rem;">
+          Este es el porcentaje de respuestas de los asistentes:
+        </p>
+        <div class="audience-chart-grid" id="audience-chart">
+          <!-- Columnas generadas dinámicamente -->
+        </div>
+        <div style="text-align: right; margin-top: 1.5rem;">
+          <button class="btn btn-primary" data-close="modal-audience" style="padding: 0.65rem 1.4rem;">Cerrar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Comodín: Llamada a un Amigo -->
+    <div id="modal-friend" class="modal-backdrop">
+      <div class="modal-dialog">
+        <div class="modal-header">
+          <h2 class="modal-title">📞 Llamada a un Amigo</h2>
+          <button class="modal-close-btn" data-close="modal-friend">&times;</button>
+        </div>
+        <div class="friend-dialog-box">
+          <div class="friend-avatar">🧑‍🏫</div>
+          <div class="speech-bubble" id="friend-message">
+            "Hola, déjame pensar... Estoy bastante seguro de la respuesta."
+          </div>
+        </div>
+        <div style="text-align: right; margin-top: 1.5rem;">
+          <button class="btn btn-primary" data-close="modal-friend" style="padding: 0.65rem 1.4rem;">Gracias</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal de Confirmación para Retirarse -->
+    <div id="modal-confirm-quit" class="modal-backdrop">
+      <div class="modal-dialog">
+        <div class="modal-header">
+          <h2 class="modal-title">⚠️ ¿Deseas Retirarte?</h2>
+          <button class="modal-close-btn" data-close="modal-confirm-quit">&times;</button>
+        </div>
+        <p style="color: var(--text-main); font-size: 1.05rem; line-height: 1.5;">
+          Si te retiras ahora, la partida terminará y conservarás tu premio actual de <strong id="quit-prize-preview" style="color: var(--gold-primary);">$0</strong>.
+        </p>
+        <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 2rem;">
+          <button class="btn btn-secondary" data-close="modal-confirm-quit" style="padding: 0.75rem 1.25rem;">Seguir Jugando</button>
+          <button id="btn-confirm-quit-action" class="btn btn-danger" style="padding: 0.75rem 1.25rem;">Confirmar Retirada</button>
+        </div>
+      </div>
+    </div>
+
+    <footer class="footer-bar">
+      <p>Millionaire Game — Partida en Vivo</p>
+    </footer>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script src="js/game.js"></script>
+</body>
+</html>

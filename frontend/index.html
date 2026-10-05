@@ -1,1 +1,94 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>¿Quién Quiere Ser Millonario? — Inicio</title>
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/animations.css">
+</head>
+<body>
+  <!-- Contenedor para notificaciones y alertas de error -->
+  <div id="toast-container" class="toast-container"></div>
 
+  <div class="app-container">
+    <header class="header-nav">
+      <a href="index.html" class="brand-logo">
+        <span class="logo-gold">MILLIONAIRE</span>
+        <span class="logo-pink">GAME</span>
+      </a>
+      <button id="btn-open-instructions" class="btn btn-secondary">📖 Instrucciones</button>
+    </header>
+
+    <main style="flex: 1; display: flex; align-items: center; justify-content: center;">
+      <div class="glass-card gold-border anim-fade-in" style="max-width: 520px; width: 100%; padding: 2.5rem 2rem; text-align: center;">
+        
+        <div class="anim-floating" style="font-size: 3.5rem; margin-bottom: 1rem;">
+          💰
+        </div>
+
+        <h1 style="font-size: 2.1rem; font-weight: 900; margin-bottom: 0.5rem; text-transform: uppercase;">
+          <span class="logo-gold">¿Quién Quiere Ser</span><br>
+          <span class="logo-pink">Millonario?</span>
+        </h1>
+        <p style="color: var(--text-muted); margin-bottom: 2rem; font-size: 1.05rem;">
+          Pon a prueba tus conocimientos y responde las 15 preguntas para ganar el premio mayor.
+        </p>
+
+        <form id="start-game-form" style="display: flex; flex-direction: column; gap: 1.25rem;">
+          <div class="input-group">
+            <label for="player-name" class="input-label">Ingresa tu Nombre / Alias</label>
+            <input 
+              type="text" 
+              id="player-name" 
+              class="input-field" 
+              placeholder="Ej: Sofía Martínez" 
+              maxlength="25" 
+              autocomplete="off" 
+              required
+            >
+          </div>
+
+          <button type="submit" id="btn-play" class="btn btn-primary" style="padding: 1.1rem; font-size: 1.2rem;">
+            🎮 JUGAR AHORA
+          </button>
+
+          <a href="ranking.html" class="btn btn-secondary" style="padding: 0.9rem;">
+            🏆 Ver Clasificación (Ranking)
+          </a>
+        </form>
+      </div>
+    </main>
+
+    <!-- Modal de Instrucciones -->
+    <div id="instructions-modal" class="modal-backdrop">
+      <div class="modal-dialog">
+        <div class="modal-header">
+          <h2 class="modal-title">📖 Reglas del Juego</h2>
+          <button id="btn-close-instructions" class="modal-close-btn">&times;</button>
+        </div>
+        <div style="color: var(--text-main); font-size: 1rem; line-height: 1.6; display: flex; flex-direction: column; gap: 0.85rem;">
+          <p><strong>🎯 Objetivo:</strong> Responde 15 preguntas de opción múltiple de dificultad creciente para llevarte el gran premio.</p>
+          <p><strong>💡 Comodines disponibles:</strong></p>
+          <ul style="padding-left: 1.25rem; display: flex; flex-direction: column; gap: 0.4rem;">
+            <li><strong>50/50:</strong> Elimina 2 respuestas incorrectas.</li>
+            <li><strong>Público:</strong> Muestra los porcentajes de votación de la audiencia.</li>
+            <li><strong>Llamada a un Amigo:</strong> Recibe el consejo de un experto.</li>
+          </ul>
+          <p><strong>🚪 Retirada:</strong> Puedes pulsar <em>"Retirarse"</em> en cualquier momento durante la partida para quedarte con el dinero acumulado hasta el momento.</p>
+        </div>
+        <div style="margin-top: 1.75rem; text-align: right;">
+          <button id="btn-got-it" class="btn btn-primary" style="padding: 0.75rem 1.5rem;">¡Entendido!</button>
+        </div>
+      </div>
+    </div>
+
+    <footer class="footer-bar">
+      <p>Millionaire Game — Desarrollado con HTML5, CSS3 y Vanilla JavaScript</p>
+    </footer>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
