@@ -257,7 +257,6 @@ function setupOptionListeners() {
 
           if (result.game_finished) {
             // ¡Victoria Total! (Llegó a la última pregunta)
-            await window.api.finish(gameState.gameId, true);
             sessionStorage.setItem('game_result', JSON.stringify({
               type: 'win',
               player: gameState.playerName,
