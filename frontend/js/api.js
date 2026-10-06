@@ -39,8 +39,8 @@ const api = {
     },
 
     // 3. Obtener 15 preguntas: -> { questions: [{ id, question, options: {A,B,C,D}, difficulty, prize }] }
-    getQuestions: async () => {
-        const rows = await apiRequest("/questions/game");
+    getQuestions: async (gameId, language = (window.getLanguage ? window.getLanguage() : "es")) => {
+        const rows = await apiRequest(`/questions/game?game_id=${encodeURIComponent(gameId)}&language=${encodeURIComponent(language)}`);
         const questions = (Array.isArray(rows) ? rows : rows.questions || []).map((row) => ({
             id: row.id,
             question: row.text || row.question,
@@ -56,8 +56,10 @@ const api = {
         apiRequest(`/games/${gid}/answers`, { method: "POST", body: JSON.stringify({ question_id: qid, answer: a }) }),
 
     // 5. Usar comodín: type = "5050" | "audience" | "friend"
-    lifeline: (gid, type) => 
-        apiRequest(`/games/${gid}/lifelines/${type}`, { method: "POST" }),
+    lifeline: (gid, type) => {
+        const language = window.getLanguage ? window.getLanguage() : "es";
+        return apiRequest(`/games/${gid}/lifelines/${type}?language=${encodeURIComponent(language)}`, { method: "POST" });
+    },
 
     // 6. Retirarse: -> { success, final_prize }
     quit: (gid) => 
