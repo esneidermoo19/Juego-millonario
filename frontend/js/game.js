@@ -50,7 +50,8 @@ const SoundFX = {
 function formatCurrency(val) {
   if (typeof val === 'string' && val.startsWith('$')) return val;
   const num = Number(val) || 0;
-  return `$${num.toLocaleString('es-CO')}`;
+  const locale = window.getLanguage && window.getLanguage() === 'en' ? 'en-US' : 'es-CO';
+  return `$${num.toLocaleString(locale)}`;
 }
 
 // Mensajes Toast
@@ -129,7 +130,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // 4. Cargar Preguntas del Backend
   try {
-    const data = await window.api.getQuestions();
+    const language = window.getLanguage ? window.getLanguage() : 'es';
+    const data = await window.api.getQuestions(gameState.gameId, language);
     gameState.questions = data.questions || [];
 
     if (!gameState.questions.length) {
@@ -148,6 +150,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // 5. Configurar Event Listeners de Opciones y Comodines
   setupOptionListeners();
+  setupSpeakerCharacter();
+  setupLanguageChange();
   setupLifelines();
   setupQuitFlow();
   setupModalCloses();
@@ -167,10 +171,27 @@ function renderLadder() {
     stepEl.id = `ladder-step-${item.level}`;
     stepEl.innerHTML = `
       <span class="step-num">${item.level}</span>
-      <span class="step-prize">${item.prize}</span>
+      <span class="step-prize">${formatCurrency(Number(item.prize.replace(/[^0-9]/g, '')))}</span>
     `;
     ladderList.appendChild(stepEl);
   }
+}
+
+function setupLanguageChange() {
+  let languageRequest = 0;
+  window.addEventListener('languagechange', async (event) => {
+    if (!gameState.gameId) return;
+    const requestNumber = ++languageRequest;
+    try {
+      const data = await window.api.getQuestions(gameState.gameId, event.detail.language);
+      if (requestNumber !== languageRequest || event.detail.language !== window.getLanguage()) return;
+      gameState.questions = data.questions || [];
+      renderCurrentQuestion();
+    } catch (error) {
+      if (requestNumber !== languageRequest) return;
+      showToast(error.message || 'Could not load questions in the selected language.', 'error');
+    }
+  });
 }
 
 // Renderizar Pregunta Actual
@@ -183,7 +204,7 @@ function renderCurrentQuestion() {
   // Actualizar Contador y Premios
   const questionNumDisplay = document.getElementById('question-num-display');
   const prizeDisplay = document.getElementById('prize-display');
-  const questionText = document.getElementById('question-text');
+  const questionText = document.getElementById('speaker-question');
 
   if (questionNumDisplay) {
     questionNumDisplay.textContent = `${gameState.questionIndex + 1} / ${gameState.questions.length}`;
@@ -196,6 +217,7 @@ function renderCurrentQuestion() {
   if (questionText) {
     questionText.textContent = q.question;
   }
+  animateSpeaker(q.question);
 
   // Actualizar Escalera
   document.querySelectorAll('.ladder-step').forEach(step => step.classList.remove('active', 'passed'));
@@ -221,6 +243,46 @@ function renderCurrentQuestion() {
     btn.className = 'option-btn';
     btn.disabled = false;
   });
+}
+
+function setupSpeakerCharacter() {
+  const speaker = document.getElementById('question-speaker');
+  const buttons = document.querySelectorAll('.character-choice');
+  if (!speaker || !buttons.length) return;
+
+  const savedCharacter = localStorage.getItem('millionaire-character') || 'person';
+  setSpeakerCharacter(savedCharacter);
+  buttons.forEach((button) => {
+    button.addEventListener('click', () => {
+      const character = button.dataset.character;
+      setSpeakerCharacter(character);
+      localStorage.setItem('millionaire-character', character);
+      animateSpeaker(gameState.questions[gameState.questionIndex]?.question || '');
+    });
+  });
+}
+
+function setSpeakerCharacter(character) {
+  const speaker = document.getElementById('question-speaker');
+  if (!speaker) return;
+  speaker.classList.toggle('robot', character === 'robot');
+  speaker.classList.toggle('person', character !== 'robot');
+  document.querySelectorAll('.character-choice').forEach((button) => {
+    const active = button.dataset.character === character;
+    button.classList.toggle('active', active);
+    button.setAttribute('aria-pressed', String(active));
+  });
+}
+
+function animateSpeaker(question) {
+  const speaker = document.getElementById('question-speaker');
+  if (!speaker || !question) return;
+  window.clearTimeout(gameState.speakerTimer);
+  speaker.classList.add('is-speaking');
+  const duration = Math.min(5200, Math.max(1800, question.trim().split(/\s+/).length * 230));
+  gameState.speakerTimer = window.setTimeout(() => {
+    speaker.classList.remove('is-speaking');
+  }, duration);
 }
 
 // Configurar Respuestas (A–D)

@@ -6,7 +6,14 @@ import random
 from flask import Blueprint, jsonify, request
 
 from ..database import get_session
-from ..models import Game, Question, Lifeline
+from ..models import Game, Lifeline
+from ..services.game_service import (
+    LETTERS,
+    displayed_correct_letter,
+    options_for_game,
+    questions_for_game,
+)
+from ..services.question_translations import english_question
 from .common import (
     commit_or_error,
     json_body,
@@ -188,11 +195,13 @@ def answer_game(game_id: int):
     game, error = active_game(session, game_id)
     if error:
         return error
-    questions = session.query(Question).order_by(Question.id).all()
+    questions = questions_for_game(session, game_id)
     index = game.current_question_number
     if index >= len(questions) or questions[index].id != question_id:
         return jsonify(error="Question is not the current question"), 400
-    correct = answer == questions[index].correct_option
+    question = questions[index]
+    correct_answer = displayed_correct_letter(question, game_id)
+    correct = answer == correct_answer
     if correct:
         game.current_question_number += 1
         game.score = PRIZES[min(index, len(PRIZES) - 1)]
@@ -208,7 +217,7 @@ def answer_game(game_id: int):
     session.commit()
     result = {"correct": correct, "prize": game.score, "game_finished": finished}
     if not correct:
-        result["correct_answer"] = questions[index].correct_option
+        result["correct_answer"] = correct_answer
     return jsonify(result)
 
 
@@ -223,22 +232,35 @@ def use_lifeline(game_id: int, kind: str):
         return error
     if session.query(Lifeline).filter_by(game_id=game_id, kind=kind).first():
         return jsonify(error="Lifeline already used"), 409
-    questions = session.query(Question).order_by(Question.id).all()
+    questions = questions_for_game(session, game_id)
     index = game.current_question_number
     if index >= len(questions):
         return jsonify(error="No current question"), 409
     question = questions[index]
+    correct_answer = displayed_correct_letter(question, game_id)
+    displayed_options = options_for_game(question, game_id)
+    language = request.args.get("language", "es").lower()
+    translated = english_question(question) if language == "en" else None
+    if language == "en" and translated is None:
+        return jsonify(error="An English translation is not available for this question"), 409
+    option_text = {
+        letter: (translated[1][LETTERS.index(source_letter)] if translated else text)
+        for letter, (source_letter, text) in zip(LETTERS, displayed_options)
+    }
     session.add(Lifeline(game_id=game_id, kind=kind, used_at=datetime.now(timezone.utc)))
     if kind == "5050":
-        wrong = [letter for letter in "ABCD" if letter != question.correct_option]
+        wrong = [letter for letter in LETTERS if letter != correct_answer]
         response = {"removed_options": random.sample(wrong, 2)}
     elif kind == "audience":
-        wrong = [letter for letter in "ABCD" if letter != question.correct_option]
+        wrong = [letter for letter in LETTERS if letter != correct_answer]
         percentages = {letter: random.randint(0, 15) for letter in wrong}
-        percentages[question.correct_option] = 100 - sum(percentages.values())
+        percentages[correct_answer] = 100 - sum(percentages.values())
         response = {"percentages": percentages}
     else:
-        response = {"message": f"Creo que la respuesta correcta es {question.correct_option}."}
+        if language == "en":
+            response = {"message": f"I think the correct answer is {correct_answer}: {option_text[correct_answer]}."}
+        else:
+            response = {"message": f"Creo que la respuesta correcta es {correct_answer}: {option_text[correct_answer]}."}
     session.commit()
     return jsonify(response)
 

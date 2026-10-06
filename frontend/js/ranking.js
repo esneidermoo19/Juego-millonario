@@ -5,7 +5,8 @@
 function formatCurrency(val) {
   if (typeof val === 'string' && val.startsWith('$')) return val;
   const num = Number(val) || 0;
-  return `$${num.toLocaleString('es-CO')}`;
+  const locale = window.getLanguage && window.getLanguage() === 'en' ? 'en-US' : 'es-CO';
+  return `$${num.toLocaleString(locale)}`;
 }
 
 function showToast(message, type = 'error') {

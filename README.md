@@ -47,8 +47,9 @@ El flujo de juego también expone `POST /api/games/<id>/answers`,
 `POST /api/games/<id>/lifelines/<5050|audience|friend>`,
 `POST /api/games/<id>/quit` y `POST /api/games/<id>/finish`. La interfaz usa
 `GET /api/questions/game`, que entrega las preguntas sin revelar sus respuestas.
-En la base local predeterminada se cargan 15 preguntas de ejemplo al iniciar si
-la tabla está vacía.
+La base local predeterminada completa automáticamente un banco de 100 preguntas
+generales, agregando las que falten sin duplicar las ya existentes. Cada partida
+selecciona 15 preguntas al azar y también mezcla el orden de sus opciones.
 
 - `backend/app.py` — fábrica de la aplicación Flask que registra los blueprints y
   configura la URL de la base de datos.
@@ -94,4 +95,3 @@ Si quieres, puedo:
 - Ejecutar la creación de tablas ahora mismo contra `backend/instance/millionaire.db`
   desde el entorno y reportar cualquier error (por ejemplo permisos o compatibilidad).
 - Preparar endpoints de documentación (OpenAPI) para facilitar pruebas.
-

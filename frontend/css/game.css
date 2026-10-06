@@ -119,23 +119,36 @@
   transform: none;
 }
 
-/* Caja de Pregunta */
-.question-card {
-  padding: 2.25rem 2rem;
-  min-height: 140px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  font-size: 1.35rem;
-  font-weight: 700;
-  line-height: 1.45;
-  color: #ffffff;
-  border: 2px solid rgba(241, 196, 15, 0.4);
-  background: linear-gradient(180deg, rgba(17, 26, 56, 0.95) 0%, rgba(10, 16, 38, 0.95) 100%);
-  border-radius: var(--radius-lg);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), inset 0 0 25px rgba(241, 196, 15, 0.08);
+/* Presentador animado que formula la pregunta */
+.question-host { display: flex; flex-direction: column; gap: .7rem; }
+.character-picker { display: flex; justify-content: flex-end; gap: .5rem; }
+.character-choice {
+  border: 1px solid rgba(168, 85, 247, .4); border-radius: 999px;
+  background: rgba(22, 34, 70, .85); color: var(--text-main);
+  padding: .45rem .85rem; cursor: pointer; font: inherit; font-size: .85rem;
 }
+.character-choice.active { border-color: var(--gold-primary); color: var(--gold-light); box-shadow: 0 0 12px rgba(241,196,15,.2); }
+.speaker-stage { display: flex; align-items: center; gap: 1.25rem; min-height: 168px; }
+.question-speaker { position: relative; flex: 0 0 112px; height: 150px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; }
+.speaker-head { position: relative; z-index: 1; width: 82px; height: 88px; border: 3px solid #f5c6a5; border-radius: 48% 48% 43% 43%; background: linear-gradient(145deg,#ffd9b8,#eaa982); box-shadow: inset 0 -7px rgba(146,76,54,.12); }
+.speaker-head::before { content: ""; position: absolute; width: 90px; height: 35px; top: -8px; left: -7px; border-radius: 50% 50% 25% 25%; background: #39284d; }
+.speaker-eyes { position: absolute; top: 37px; left: 20px; display: flex; gap: 20px; }
+.speaker-eyes i { width: 7px; height: 9px; border-radius: 50%; background: #25253a; }
+.speaker-mouth { position: absolute; left: 31px; top: 61px; width: 18px; height: 5px; border-radius: 50%; background: #8d3547; }
+.speaker-body { width: 98px; height: 44px; margin-top: -4px; border-radius: 45px 45px 8px 8px; background: linear-gradient(90deg,#8b5cf6,#ec4899); }
+.question-speaker.robot .speaker-head { width: 86px; height: 76px; margin-bottom: 10px; border-radius: 18px; border-color: #84d7ef; background: linear-gradient(145deg,#d4f5ff,#70bad7); }
+.question-speaker.robot .speaker-head::before { display: none; }
+.question-speaker.robot .speaker-antenna { position: absolute; top: 0; width: 4px; height: 17px; background: #84d7ef; }
+.question-speaker.robot .speaker-antenna::before { content: ""; position: absolute; top: -7px; left: -4px; width: 12px; height: 12px; border-radius: 50%; background: var(--gold-primary); }
+.question-speaker.robot .speaker-eyes { top: 27px; }
+.question-speaker.robot .speaker-eyes i { width: 12px; height: 12px; background: #245077; box-shadow: 0 0 7px #25c9ff; }
+.question-speaker.robot .speaker-mouth { top: 55px; left: 24px; width: 34px; height: 7px; border-radius: 3px; background: repeating-linear-gradient(90deg,#245077 0 4px,transparent 4px 7px); }
+.question-speaker.robot .speaker-body { height: 38px; border: 2px solid #84d7ef; background: linear-gradient(90deg,#326d9a,#54b7d5); }
+.speaker-bubble { position: relative; flex: 1; min-height: 116px; display: flex; align-items: center; justify-content: center; padding: 1.5rem 1.75rem; text-align: center; font-size: 1.25rem; font-weight: 700; line-height: 1.45; color: #fff; border: 2px solid rgba(241,196,15,.45); border-radius: var(--radius-lg); background: linear-gradient(180deg,rgba(17,26,56,.96),rgba(10,16,38,.96)); box-shadow: 0 10px 30px rgba(0,0,0,.35),inset 0 0 25px rgba(241,196,15,.08); }
+.speaker-bubble::before { content: ""; position: absolute; left: -12px; top: 50%; width: 20px; height: 20px; transform: translateY(-50%) rotate(45deg); background: #111a38; border-left: 2px solid rgba(241,196,15,.45); border-bottom: 2px solid rgba(241,196,15,.45); }
+.question-speaker.is-speaking .speaker-mouth { animation: speaker-talk .18s ease-in-out infinite alternate; }
+@keyframes speaker-talk { from { height: 4px; } to { height: 15px; } }
+@media (max-width: 560px) { .speaker-stage { gap: .5rem; } .question-speaker { flex-basis: 74px; transform: scale(.78); transform-origin: center right; margin-left: -15px; } .speaker-bubble { padding: 1rem; font-size: 1rem; } }
 
 /* Cuadrícula de Opciones A, B, C, D */
 .options-container {
