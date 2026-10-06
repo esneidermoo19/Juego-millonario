@@ -13,7 +13,7 @@ from .routes.ranking import ranking_bp
 
 
 def create_app(test_config: dict[str, object] | None = None) -> Flask:
-    app = Flask(__name__)
+    app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), '..', 'frontend'), static_url_path='')
     app.config.from_mapping(
         DATABASE_URL=os.environ.get(
             "DATABASE_URL", "sqlite:///backend/instance/millionaire.db"
@@ -23,6 +23,21 @@ def create_app(test_config: dict[str, object] | None = None) -> Flask:
         app.config.update(test_config)
 
     init_database(app)
+
+    # Allow frontend (static files) to be served from the project frontend/ folder
+    # and add simple CORS headers so the SPA can call the backend.
+    @app.after_request
+    def _add_cors_headers(response):
+        response.headers.setdefault("Access-Control-Allow-Origin", "*")
+        response.headers.setdefault("Access-Control-Allow-Headers", "Content-Type")
+        response.headers.setdefault(
+            "Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,DELETE,OPTIONS"
+        )
+        return response
+
+    # Serve index at root; static files are served from the configured static_folder.
+    app.add_url_rule('/', 'index', lambda: app.send_static_file('index.html'))
+
     app.register_blueprint(players_bp, url_prefix="/api/players")
     app.register_blueprint(games_bp, url_prefix="/api/games")
     app.register_blueprint(questions_bp, url_prefix="/api/questions")

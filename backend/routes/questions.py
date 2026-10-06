@@ -89,6 +89,26 @@ def list_questions():
     return jsonify([serialize_question(question) for question in questions])
 
 
+@questions_bp.get("/game")
+def list_game_questions():
+    """Public question payload for the browser; correct answers stay server-side."""
+    questions = get_session().query(Question).order_by(Question.id).all()
+    return jsonify({"questions": [
+        {
+            "id": question.id,
+            "question": question.text,
+            "options": {
+                "A": question.option_a,
+                "B": question.option_b,
+                "C": question.option_c,
+                "D": question.option_d,
+            },
+            "difficulty": question.difficulty,
+        }
+        for question in questions
+    ]})
+
+
 @questions_bp.post("")
 def create_question():
     data, error = json_body()

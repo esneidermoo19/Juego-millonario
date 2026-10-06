@@ -41,7 +41,14 @@ DATABASE_URL=sqlite:///backend/instance/millionaire.db python -m backend.app
   - `/api/games` — CRUD de partidas
   - `/api/questions` — CRUD de preguntas
   - `/api/lifelines` — CRUD de comodines
-  - `/api/ranking` — consulta derivada del ranking (solo GET)
+- `/api/ranking` — consulta derivada del ranking (solo GET)
+
+El flujo de juego también expone `POST /api/games/<id>/answers`,
+`POST /api/games/<id>/lifelines/<5050|audience|friend>`,
+`POST /api/games/<id>/quit` y `POST /api/games/<id>/finish`. La interfaz usa
+`GET /api/questions/game`, que entrega las preguntas sin revelar sus respuestas.
+En la base local predeterminada se cargan 15 preguntas de ejemplo al iniciar si
+la tabla está vacía.
 
 - `backend/app.py` — fábrica de la aplicación Flask que registra los blueprints y
   configura la URL de la base de datos.
@@ -87,5 +94,4 @@ Si quieres, puedo:
 - Ejecutar la creación de tablas ahora mismo contra `backend/instance/millionaire.db`
   desde el entorno y reportar cualquier error (por ejemplo permisos o compatibilidad).
 - Preparar endpoints de documentación (OpenAPI) para facilitar pruebas.
-
 
