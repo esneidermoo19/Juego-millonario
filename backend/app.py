@@ -57,4 +57,6 @@ def create_app(test_config: dict[str, object] | None = None) -> Flask:
 
 
 if __name__ == "__main__":
-    create_app().run(debug=False)
+    # Escucha en la red local para que otros dispositivos del mismo Wi-Fi
+    # puedan abrir el juego usando la dirección IP de este equipo.
+    create_app().run(host="0.0.0.0", port=5000, debug=False)
