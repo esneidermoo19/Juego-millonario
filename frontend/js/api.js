@@ -55,6 +55,10 @@ const api = {
     answer: (gid, qid, a) => 
         apiRequest(`/games/${gid}/answers`, { method: "POST", body: JSON.stringify({ question_id: qid, answer: a }) }),
 
+    // 4b. Agotar el tiempo de una pregunta y terminar la partida como respuesta incorrecta.
+    timeout: (gid, qid) =>
+        apiRequest(`/games/${gid}/timeout`, { method: "POST", body: JSON.stringify({ question_id: qid }) }),
+
     // 5. Usar comodín: type = "5050" | "audience" | "friend"
     lifeline: (gid, type) => {
         const language = window.getLanguage ? window.getLanguage() : "es";

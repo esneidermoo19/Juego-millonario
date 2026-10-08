@@ -221,6 +221,30 @@ def answer_game(game_id: int):
     return jsonify(result)
 
 
+@games_bp.post("/<int:game_id>/timeout")
+def timeout_game(game_id: int):
+    """Finish the active game when the player runs out of time on the current question."""
+    data, error = json_body()
+    if error:
+        return error
+    question_id = (data or {}).get("question_id")
+    if not isinstance(question_id, int) or isinstance(question_id, bool):
+        return jsonify(error="question_id is required"), 400
+    session = get_session()
+    game, error = active_game(session, game_id)
+    if error:
+        return error
+    questions = questions_for_game(session, game_id)
+    index = game.current_question_number
+    if index >= len(questions) or questions[index].id != question_id:
+        return jsonify(error="Question is not the current question"), 400
+    game.score = 32000 if index >= 10 else 1000 if index >= 5 else 0
+    game.status = "completed"
+    game.finished_at = datetime.now(timezone.utc)
+    session.commit()
+    return jsonify(correct=False, prize=game.score, game_finished=True)
+
+
 @games_bp.post("/<int:game_id>/lifelines/<kind>")
 def use_lifeline(game_id: int, kind: str):
     aliases = {"5050": "5050", "audience": "audience", "friend": "friend"}

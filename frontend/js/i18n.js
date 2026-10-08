@@ -128,6 +128,10 @@
       const number = key.match(/pregunta\s+(\d+)/)?.[1] || "0";
       translated = `Incorrect answer. You made it to question ${number}. Try again!`;
     }
+    if (language === "en" && !translated && key.startsWith("Se agotó el tiempo. Llegaste hasta la pregunta ")) {
+      const number = key.match(/pregunta\s+(\d+)/)?.[1] || "0";
+      translated = `Time ran out. You made it to question ${number}. Try again!`;
+    }
     node.nodeValue = language === "en" && translated
       ? `${leading}${translated}${trailing}`
       : original;
