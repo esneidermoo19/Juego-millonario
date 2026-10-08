@@ -87,8 +87,15 @@ let gameState = {
     audience: false, 
     friend: false 
   },
-  answering: false        // Evita doble envío / clic múltiple
+  answering: false,       // Evita doble envío / clic múltiple
+  timerInterval: null,
+  timerDeadline: null,
+  timerQuestionId: null,
+  timerExpired: false
 };
+
+const QUESTION_TIME_SECONDS = 30;
+const ANSWER_FEEDBACK_MS = 2000;
 
 // Escala estándar de 15 premios
 const PRIZE_LADDER = [
@@ -200,6 +207,7 @@ function renderCurrentQuestion() {
   if (!q) return;
 
   gameState.answering = false;
+  if (gameState.timerQuestionId !== q.id) startQuestionTimer(q.id);
 
   // Actualizar Contador y Premios
   const questionNumDisplay = document.getElementById('question-num-display');
@@ -242,6 +250,87 @@ function renderCurrentQuestion() {
     // Resetear estados visuales
     btn.className = 'option-btn';
     btn.disabled = false;
+  });
+}
+
+function updateQuestionTimer(secondsLeft) {
+  const timer = document.getElementById('question-timer');
+  const value = document.getElementById('timer-value');
+  const progress = document.getElementById('timer-ring-progress');
+  if (!timer || !value || !progress) return;
+  const remaining = Math.max(0, secondsLeft);
+  value.textContent = String(remaining);
+  timer.setAttribute('aria-label', `Tiempo para responder: ${remaining} segundos`);
+  progress.style.strokeDashoffset = String(276.46 * (1 - remaining / QUESTION_TIME_SECONDS));
+  timer.classList.toggle('is-warning', remaining <= 15 && remaining > 7);
+  timer.classList.toggle('is-critical', remaining <= 7);
+}
+
+function startQuestionTimer(questionId) {
+  gameState.timerQuestionId = questionId;
+  gameState.timerExpired = false;
+  gameState.timerDeadline = Date.now() + QUESTION_TIME_SECONDS * 1000;
+  scheduleQuestionTimer(questionId);
+}
+
+function scheduleQuestionTimer(questionId) {
+  window.clearInterval(gameState.timerInterval);
+  const tick = () => {
+    if (gameState.answering || gameState.timerExpired) return;
+    const remainingMs = gameState.timerDeadline - Date.now();
+    const remaining = Math.max(0, Math.ceil(remainingMs / 1000));
+    updateQuestionTimer(remaining);
+    if (remainingMs <= 0) {
+      window.clearInterval(gameState.timerInterval);
+      gameState.timerInterval = null;
+      handleQuestionTimeout(questionId);
+    }
+  };
+  tick();
+  if (!gameState.timerExpired && !gameState.answering) {
+    gameState.timerInterval = window.setInterval(tick, 100);
+  }
+}
+
+async function handleQuestionTimeout(questionId) {
+  if (gameState.answering || gameState.timerExpired || gameState.questions[gameState.questionIndex]?.id !== questionId) return;
+  gameState.timerExpired = true;
+  gameState.answering = true;
+  try {
+    const result = await window.api.timeout(gameState.gameId, questionId);
+    showTimeoutLoss(result.prize);
+  } catch (error) {
+    console.error('Error al registrar el tiempo agotado:', error);
+    showTimeoutLoss(gameState.currentPrize);
+  }
+}
+
+function showTimeoutLoss(prize) {
+  sessionStorage.setItem('game_result', JSON.stringify({
+    type: 'loss',
+    reason: 'timeout',
+    player: gameState.playerName,
+    prize: formatCurrency(prize || 0),
+    cleared: gameState.questionIndex + 1
+  }));
+  setTimeout(() => { window.location.href = 'results.html'; }, 1600);
+}
+
+function showLossResult(prize) {
+  sessionStorage.setItem('game_result', JSON.stringify({
+    type: 'loss',
+    player: gameState.playerName,
+    prize: formatCurrency(prize || 0),
+    cleared: gameState.questionIndex
+  }));
+  setTimeout(() => { window.location.href = 'results.html'; }, ANSWER_FEEDBACK_MS);
+}
+
+function showAnswerFeedback(optionButtons, correctLetter) {
+  optionButtons.forEach(option => {
+    const isCorrect = option.dataset.option === correctLetter;
+    option.classList.remove('selected', 'removed-5050', 'correct', 'incorrect');
+    option.classList.add(isCorrect ? 'correct' : 'incorrect');
   });
 }
 
@@ -291,8 +380,15 @@ function setupOptionListeners() {
   
   optionButtons.forEach(btn => {
     btn.addEventListener('click', async () => {
-      if (gameState.answering) return; // Evitar doble envío
+      if (gameState.answering || gameState.timerExpired) return; // Evitar doble envío
+      const q = gameState.questions[gameState.questionIndex];
+      if (Date.now() >= gameState.timerDeadline) {
+        handleQuestionTimeout(q.id);
+        return;
+      }
       gameState.answering = true;
+      window.clearInterval(gameState.timerInterval);
+      gameState.timerInterval = null;
       SoundFX.click();
 
       const selectedLetter = btn.getAttribute('data-option');
@@ -301,16 +397,14 @@ function setupOptionListeners() {
       // Deshabilitar todos los botones mientras se valida
       optionButtons.forEach(b => b.disabled = true);
 
-      const q = gameState.questions[gameState.questionIndex];
-
       try {
         // Enviar respuesta al backend según contrato
         const result = await window.api.answer(gameState.gameId, q.id, selectedLetter);
+        const correctLetter = result.correct ? selectedLetter : result.correct_answer;
+        showAnswerFeedback(optionButtons, correctLetter);
 
         if (result.correct) {
           SoundFX.correct();
-          btn.classList.remove('selected');
-          btn.classList.add('correct');
 
           // Actualizar premio acumulado
           if (result.prize !== undefined) {
@@ -325,35 +419,19 @@ function setupOptionListeners() {
               prize: formatCurrency(result.prize || gameState.currentPrize),
               cleared: gameState.questionIndex + 1
             }));
-            setTimeout(() => window.location.href = 'results.html', 1400);
+            setTimeout(() => window.location.href = 'results.html', ANSWER_FEEDBACK_MS);
           } else {
-            // Avanzar a la siguiente pregunta
+            // Avanzar a la siguiente pregunta (espera 2s para ver el color verde)
             setTimeout(() => {
               gameState.questionIndex++;
               renderCurrentQuestion();
-            }, 1200);
+            }, 2000);
           }
 
         } else {
           // Respuesta Incorrecta (Derrota)
           SoundFX.wrong();
-          btn.classList.remove('selected');
-          btn.classList.add('incorrect');
-
-          // Resaltar la respuesta correcta devuelta por el backend
-          if (result.correct_answer) {
-            const correctBtn = document.querySelector(`.option-btn[data-option="${result.correct_answer}"]`);
-            if (correctBtn) correctBtn.classList.add('correct');
-          }
-
-          sessionStorage.setItem('game_result', JSON.stringify({
-            type: 'loss',
-            player: gameState.playerName,
-            prize: formatCurrency(result.prize || 0),
-            cleared: gameState.questionIndex
-          }));
-
-          setTimeout(() => window.location.href = 'results.html', 1600);
+          showLossResult(result.prize);
         }
 
       } catch (error) {
@@ -361,6 +439,7 @@ function setupOptionListeners() {
         btn.classList.remove('selected');
         optionButtons.forEach(b => b.disabled = false);
         gameState.answering = false;
+        if (!gameState.timerExpired) scheduleQuestionTimer(q.id);
 
         if (error.status === undefined) {
           showToast('⚠️ No se pudo conectar con el servidor para validar la respuesta.', 'error');

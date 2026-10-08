@@ -73,6 +73,14 @@
           </div>
         </div>
 
+        <div class="question-timer" id="question-timer" role="timer" aria-label="Tiempo para responder: 30 segundos">
+          <svg class="timer-ring" viewBox="0 0 100 100" aria-hidden="true">
+            <circle class="timer-ring-track" cx="50" cy="50" r="44"></circle>
+            <circle class="timer-ring-progress" id="timer-ring-progress" cx="50" cy="50" r="44"></circle>
+          </svg>
+          <span class="timer-value" id="timer-value">30</span>
+        </div>
+
         <!-- Opciones A, B, C, D -->
         <div class="options-container" id="options-container">
           <button class="option-btn" data-option="A">
