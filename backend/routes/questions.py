@@ -3,7 +3,9 @@ from __future__ import annotations
 from flask import Blueprint, jsonify, request
 
 from ..database import get_session
-from ..models import Question
+from ..models import Game, Question
+from ..services.game_service import LETTERS, options_for_game, questions_for_game
+from ..services.question_translations import english_question
 from .common import commit_or_error, json_body, not_found, unknown_fields
 
 
@@ -87,6 +89,49 @@ def validate_question_data(
 def list_questions():
     questions = get_session().query(Question).order_by(Question.id).all()
     return jsonify([serialize_question(question) for question in questions])
+
+
+@questions_bp.get("/game")
+def list_game_questions():
+    """Public question payload for the browser; correct answers stay server-side."""
+    raw_game_id = request.args.get("game_id")
+    try:
+        game_id = int(raw_game_id) if raw_game_id is not None else 0
+    except ValueError:
+        return jsonify(error="game_id must be a positive integer"), 400
+    if game_id <= 0:
+        return jsonify(error="game_id must be a positive integer"), 400
+    session = get_session()
+    if session.get(Game, game_id) is None:
+        return jsonify(error="Game not found"), 404
+    language = request.args.get("language", "es").lower()
+    if language not in {"es", "en"}:
+        return jsonify(error="language must be es or en"), 400
+    questions = questions_for_game(session, game_id)
+    serialized = []
+    for question in questions:
+        displayed_options = options_for_game(question, game_id)
+        if language == "en":
+            translated = english_question(question)
+            if translated is None:
+                return jsonify(
+                    error="An English translation is not available for a question in this bank"
+                ), 409
+            question_text, source_options = translated
+            options = {
+                letter: source_options[LETTERS.index(source_letter)]
+                for letter, (source_letter, _) in zip(LETTERS, displayed_options)
+            }
+        else:
+            question_text = question.text
+            options = {letter: text for letter, (_, text) in zip(LETTERS, displayed_options)}
+        serialized.append({
+            "id": question.id,
+            "question": question_text,
+            "options": options,
+            "difficulty": question.difficulty,
+        })
+    return jsonify({"questions": serialized})
 
 
 @questions_bp.post("")

@@ -36,6 +36,7 @@
         </div>
       </div>
       <div class="header-actions">
+        <button id="language-toggle" class="btn btn-secondary" type="button">English</button>
         <button id="btn-sound-game" class="icon-btn" title="Sonido" aria-label="Sonido">🔊</button>
         <button id="btn-quit" class="btn btn-danger" style="padding: 0.6rem 1.2rem; font-size: 0.9rem;">
           🚪 Retirarse
@@ -49,9 +50,9 @@
         <!-- Fila superior: Temporizador + Comodines -->
         <div class="arena-top-row">
           <div class="timer-wrap" aria-live="polite">
-            <div class="timer-ring screen-glow" id="timer-ring">
+            <div class="timer-ring" id="timer-ring" role="timer" aria-label="Tiempo para responder">
               <div class="timer-inner">
-                <span id="timer-value" class="timer-value">45</span>
+                <span id="timer-value" class="timer-value">30</span>
                 <span class="timer-unit">seg</span>
               </div>
             </div>
@@ -207,6 +208,7 @@
     </footer>
   </div>
 
+  <script src="js/i18n.js"></script>
   <script src="js/utils.js"></script>
   <script src="js/api.js"></script>
   <script src="js/game.js"></script>

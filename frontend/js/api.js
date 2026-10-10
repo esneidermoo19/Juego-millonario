@@ -3,7 +3,9 @@
  * Alineado exactamente con el contrato del backend en Fronted.md
  */
 
-const API_URL = "http://127.0.0.1:5000/api";
+const API_URL = window.location.protocol === "file:"
+    ? "http://127.0.0.1:5000/api"
+    : `${window.location.origin}/api`;
 
 async function apiRequest(endpoint, options = {}) {
     const response = await fetch(`${API_URL}${endpoint}`, {
@@ -25,24 +27,43 @@ async function apiRequest(endpoint, options = {}) {
 
 const api = {
     // 1. Crear jugador: { name } -> { success, player: { id, name } }
-    createPlayer: (name) => 
-        apiRequest("/players", { method: "POST", body: JSON.stringify({ name }) }),
+    createPlayer: async (name) => {
+        const player = await apiRequest("/players", { method: "POST", body: JSON.stringify({ name }) });
+        return { player };
+    },
 
     // 2. Crear partida: { player_id } -> { game: { id, player_id, current_question, current_prize } }
-    createGame: (playerId) => 
-        apiRequest("/games", { method: "POST", body: JSON.stringify({ player_id: playerId }) }),
+    createGame: async (playerId) => {
+        const game = await apiRequest("/games", { method: "POST", body: JSON.stringify({ player_id: playerId }) });
+        return { game };
+    },
 
     // 3. Obtener 15 preguntas: -> { questions: [{ id, question, options: {A,B,C,D}, difficulty, prize }] }
-    getQuestions: () => 
-        apiRequest("/questions"),
+    getQuestions: async (gameId, language = (window.getLanguage ? window.getLanguage() : "es")) => {
+        const rows = await apiRequest(`/questions/game?game_id=${encodeURIComponent(gameId)}&language=${encodeURIComponent(language)}`);
+        const questions = (Array.isArray(rows) ? rows : rows.questions || []).map((row) => ({
+            id: row.id,
+            question: row.text || row.question,
+            options: row.options || { A: row.option_a, B: row.option_b, C: row.option_c, D: row.option_d },
+            difficulty: row.difficulty,
+            prize: row.prize
+        }));
+        return { questions };
+    },
 
     // 4. Responder: { question_id, answer } -> { correct, correct_answer, prize, game_finished }
     answer: (gid, qid, a) => 
         apiRequest(`/games/${gid}/answers`, { method: "POST", body: JSON.stringify({ question_id: qid, answer: a }) }),
 
+    // 4b. Agotar el tiempo de una pregunta y terminar la partida como respuesta incorrecta.
+    timeout: (gid, qid) =>
+        apiRequest(`/games/${gid}/timeout`, { method: "POST", body: JSON.stringify({ question_id: qid }) }),
+
     // 5. Usar comodín: type = "5050" | "audience" | "friend"
-    lifeline: (gid, type) => 
-        apiRequest(`/games/${gid}/lifelines/${type}`, { method: "POST" }),
+    lifeline: (gid, type) => {
+        const language = window.getLanguage ? window.getLanguage() : "es";
+        return apiRequest(`/games/${gid}/lifelines/${type}?language=${encodeURIComponent(language)}`, { method: "POST" });
+    },
 
     // 6. Retirarse: -> { success, final_prize }
     quit: (gid) => 
@@ -53,8 +74,15 @@ const api = {
         apiRequest(`/games/${gid}/finish`, { method: "POST", body: JSON.stringify({ won }) }),
 
     // 8. Obtener tabla de clasificación: -> { ranking: [{ position, player, prize }] }
-    getRanking: () => 
-        apiRequest("/ranking")
+    getRanking: async () => {
+        const rows = await apiRequest("/ranking");
+        const ranking = (Array.isArray(rows) ? rows : rows.ranking || []).map((row, index) => ({
+            position: index + 1,
+            player: row.player || row.player_name,
+            prize: row.prize !== undefined ? row.prize : row.score
+        }));
+        return { ranking };
+    }
 };
 
 // Exportar globalmente para scripts del navegador

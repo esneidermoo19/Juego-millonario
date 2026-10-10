@@ -1,8 +1,11 @@
 /**
  * Controlador de Partida y Lógica de Juego (game.html)
- * Cumple estrictamente con el contrato y flujo de Fronted.md
  *
- * Requiere: utils.js (showToast, formatCurrency), api.js
+ * Combina la escena visual 2D (hexágonos, presentador, temporizador cónico)
+ * con las características funcionales del backend: preguntas aleatorias,
+ * temporizador real con "timeout", comodines y soporte de idioma (i18n).
+ *
+ * Requiere: i18n.js (window.getLanguage), utils.js (showToast, formatCurrency), api.js
  */
 
 // Sintetizador Web Audio API para efectos de sonido
@@ -49,16 +52,19 @@ const SoundFX = {
   }
 };
 
-// ─── TAREA 7: Niveles seguros (constante fácil de cambiar) ─────────────
-// El backend aún no confirma esta regla; ajustar si cambia.
+// Niveles seguros (milestones) de la escalera de premios
 const SAFE_LEVELS = [5, 10, 15];
+
+// Tiempo por pregunta (debe coincidir con el timeout del backend)
+const QUESTION_TIME_SECONDS = 30;
+const ANSWER_FEEDBACK_MS = 2000;
 
 // Estado Principal de Partida
 let gameState = {
   playerId: null,
   playerName: 'Jugador',
   gameId: null,
-  questions: [],          // Sin respuestas correctas (como dicta Fronted.md)
+  questions: [],          // Sin respuestas correctas (las decide el backend)
   questionIndex: 0,
   currentPrize: 0,
   usedLifelines: {
@@ -66,10 +72,14 @@ let gameState = {
     audience: false,
     friend: false
   },
-  answering: false        // Evita doble envío / clic múltiple
+  answering: false,       // Evita doble envío / clic múltiple
+  timerInterval: null,
+  timerDeadline: null,
+  timerQuestionId: null,
+  timerExpired: false
 };
 
-// Escala estándar de 15 premios — TAREA 7: milestone derivado de SAFE_LEVELS
+// Escala estándar de 15 premios
 const PRIZE_LADDER = [
   { level: 1, prize: "$100" },
   { level: 2, prize: "$200" },
@@ -91,7 +101,7 @@ const PRIZE_LADDER = [
   milestone: SAFE_LEVELS.includes(item.level)
 }));
 
-// ─── TAREA 2: Persistir / restaurar progreso en sessionStorage ─────────
+// ─── Persistir / restaurar progreso en sessionStorage ─────────────────
 const PROGRESS_KEY = 'game_progress';
 
 function saveProgress() {
@@ -135,51 +145,89 @@ window.addEventListener('pageshow', (event) => {
     window.location.href = 'index.html';
   }
 });
-// ────────────────────────────────────────────────────────────────────────
 
-// ─── Temporizador circular (indicador visual de cuenta regresiva) ──────
-const TIMER_SECONDS = 45;
-let timerInterval = null;
-let timeLeft = TIMER_SECONDS;
-
-function startTimer() {
-  stopTimer();
-  timeLeft = TIMER_SECONDS;
-  updateTimerDisplay();
-  timerInterval = setInterval(() => {
-    timeLeft -= 1;
-    updateTimerDisplay();
-    if (timeLeft <= 0) {
-      setPresenterMessage('⏰ ¡Se ha agotado el tiempo! Tómate un momento y elige tu respuesta.');
-      stopTimer();
-    }
-  }, 1000);
+// ─── Temporizador circular (cuenta regresiva con timeout real) ────────
+function startQuestionTimer(questionId) {
+  gameState.timerQuestionId = questionId;
+  gameState.timerExpired = false;
+  gameState.timerDeadline = Date.now() + QUESTION_TIME_SECONDS * 1000;
+  scheduleQuestionTimer(questionId);
 }
 
-function stopTimer() {
-  if (timerInterval) {
-    clearInterval(timerInterval);
-    timerInterval = null;
+function scheduleQuestionTimer(questionId) {
+  window.clearInterval(gameState.timerInterval);
+  const tick = () => {
+    if (gameState.answering || gameState.timerExpired) return;
+    const remainingMs = gameState.timerDeadline - Date.now();
+    const remaining = Math.max(0, Math.ceil(remainingMs / 1000));
+    updateQuestionTimer(remaining);
+    if (remainingMs <= 0) {
+      window.clearInterval(gameState.timerInterval);
+      gameState.timerInterval = null;
+      handleQuestionTimeout(questionId);
+    }
+  };
+  tick();
+  if (!gameState.timerExpired && !gameState.answering) {
+    gameState.timerInterval = window.setInterval(tick, 100);
   }
 }
 
-function updateTimerDisplay() {
-  const valueEl = document.getElementById('timer-value');
-  const ringEl = document.getElementById('timer-ring');
-  const seconds = Math.max(0, timeLeft);
-  if (valueEl) valueEl.textContent = seconds;
-  if (ringEl) {
-    const pct = Math.max(0, Math.min(100, (seconds / TIMER_SECONDS) * 100));
-    ringEl.style.setProperty('--timer-pct', pct + '%');
-    if (seconds <= 10) {
-      ringEl.classList.add('urgent');
-    } else {
-      ringEl.classList.remove('urgent');
-    }
+function updateQuestionTimer(secondsLeft) {
+  const value = document.getElementById('timer-value');
+  const ring = document.getElementById('timer-ring');
+  if (value) value.textContent = String(Math.max(0, secondsLeft));
+  if (ring) {
+    const pct = Math.max(0, Math.min(100, (secondsLeft / QUESTION_TIME_SECONDS) * 100));
+    ring.style.setProperty('--timer-pct', pct + '%');
+    ring.classList.toggle('urgent', secondsLeft <= 10);
   }
 }
 
-// ─── Bocadillo de diálogo del presentador ───────────────────────────────
+async function handleQuestionTimeout(questionId) {
+  if (gameState.answering || gameState.timerExpired || gameState.questions[gameState.questionIndex]?.id !== questionId) return;
+  gameState.timerExpired = true;
+  gameState.answering = true;
+  setPresenterMessage('⏰ ¡Se ha agotado el tiempo!');
+  try {
+    const result = await window.api.timeout(gameState.gameId, questionId);
+    showTimeoutLoss(result.prize);
+  } catch (error) {
+    console.error('Error al registrar el tiempo agotado:', error);
+    showTimeoutLoss(gameState.currentPrize);
+  }
+}
+
+function showTimeoutLoss(prize) {
+  sessionStorage.setItem('game_result', JSON.stringify({
+    type: 'loss',
+    reason: 'timeout',
+    player: gameState.playerName,
+    prize: formatCurrency(prize || 0),
+    cleared: gameState.questionIndex + 1
+  }));
+  setTimeout(() => { window.location.href = 'results.html'; }, ANSWER_FEEDBACK_MS);
+}
+
+function showLossResult(prize) {
+  sessionStorage.setItem('game_result', JSON.stringify({
+    type: 'loss',
+    player: gameState.playerName,
+    prize: formatCurrency(prize || 0),
+    cleared: gameState.questionIndex
+  }));
+  setTimeout(() => { window.location.href = 'results.html'; }, ANSWER_FEEDBACK_MS);
+}
+
+function showAnswerFeedback(optionButtons, correctLetter) {
+  optionButtons.forEach(option => {
+    const isCorrect = option.dataset.option === correctLetter;
+    option.classList.remove('selected', 'removed-5050', 'correct', 'incorrect');
+    option.classList.add(isCorrect ? 'correct' : 'incorrect');
+  });
+}
+
+// ─── Bocadillo de diálogo del presentador ─────────────────────────────
 function setPresenterMessage(text) {
   const el = document.getElementById('presenter-message');
   if (el) el.textContent = text;
@@ -201,7 +249,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const playerDisplay = document.getElementById('player-display');
   if (playerDisplay) playerDisplay.textContent = gameState.playerName;
 
-  // 3. Restaurar progreso previo si el jugador recargó la página (TAREA 2)
+  // 3. Restaurar progreso previo si el jugador recargó la página
   const restored = restoreProgress();
 
   // 4. Inicializar Escalera Visual
@@ -209,23 +257,17 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // 5. Cargar Preguntas del Backend
   try {
-    const data = await window.api.getQuestions();
+    const language = window.getLanguage ? window.getLanguage() : 'es';
+    const data = await window.api.getQuestions(gameState.gameId, language);
     gameState.questions = data.questions || [];
 
     if (!gameState.questions.length) {
       throw new Error('No se recibieron preguntas del servidor.');
     }
 
-    // TAREA 5: Ordenar por difficulty ascendente y tomar solo las primeras 15.
-    // NOTA: El backend debe usar el mismo orden (por difficulty) al procesar comodines.
-    gameState.questions.sort((a, b) => (a.difficulty || 0) - (b.difficulty || 0));
-    gameState.questions = gameState.questions.slice(0, 15);
-
     renderCurrentQuestion();
-
     setPresenterMessage(`¡Bienvenido al concurso, ${gameState.playerName}! Responde las 15 preguntas para llevarte el gran premio.`);
 
-    // Restaurar estado visual de comodines ya usados (TAREA 2)
     if (restored) {
       applyRestoredLifelineState();
     }
@@ -240,6 +282,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // 6. Configurar Event Listeners de Opciones y Comodines
   setupOptionListeners();
+  setupLanguageChange();
   setupLifelines();
   setupQuitFlow();
   setupModalCloses();
@@ -256,7 +299,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 });
 
-// Restaurar el estado visual de los botones de comodines tras recarga (TAREA 2)
+// Restaurar el estado visual de los botones de comodines tras recarga
 function applyRestoredLifelineState() {
   if (gameState.usedLifelines.fiftyFifty) {
     const btn = document.getElementById('lifeline-5050');
@@ -286,10 +329,28 @@ function renderLadder() {
     stepEl.id = `ladder-step-${item.level}`;
     stepEl.innerHTML = `
       <span class="step-num">${item.level}</span>
-      <span class="step-prize">${item.prize}</span>
+      <span class="step-prize">${formatCurrency(Number(item.prize.replace(/[^0-9]/g, '')))}</span>
     `;
     ladderList.appendChild(stepEl);
   }
+}
+
+// Recargar preguntas al cambiar de idioma
+function setupLanguageChange() {
+  let languageRequest = 0;
+  window.addEventListener('languagechange', async (event) => {
+    if (!gameState.gameId) return;
+    const requestNumber = ++languageRequest;
+    try {
+      const data = await window.api.getQuestions(gameState.gameId, event.detail.language);
+      if (requestNumber !== languageRequest || event.detail.language !== window.getLanguage()) return;
+      gameState.questions = data.questions || [];
+      renderCurrentQuestion();
+    } catch (error) {
+      if (requestNumber !== languageRequest) return;
+      showToast(error.message || 'Could not load questions in the selected language.', 'error');
+    }
+  });
 }
 
 // Renderizar Pregunta Actual
@@ -298,11 +359,13 @@ function renderCurrentQuestion() {
   if (!q) return;
 
   gameState.answering = false;
+  if (gameState.timerQuestionId !== q.id) startQuestionTimer(q.id);
 
   // Actualizar Contador y Premios
   const questionNumDisplay = document.getElementById('question-num-display');
   const prizeDisplay = document.getElementById('prize-display');
   const questionText = document.getElementById('question-text');
+  const withdrawPrize = document.getElementById('withdraw-prize');
 
   if (questionNumDisplay) {
     questionNumDisplay.textContent = `${gameState.questionIndex + 1} / ${gameState.questions.length}`;
@@ -312,7 +375,6 @@ function renderCurrentQuestion() {
     prizeDisplay.textContent = formatCurrency(gameState.currentPrize);
   }
 
-  const withdrawPrize = document.getElementById('withdraw-prize');
   if (withdrawPrize) {
     withdrawPrize.textContent = formatCurrency(gameState.currentPrize);
   }
@@ -344,20 +406,25 @@ function renderCurrentQuestion() {
     btn.className = 'option-btn';
     btn.disabled = false;
   });
-
-  // Reiniciar temporizador para la nueva pregunta
-  startTimer();
 }
 
 // Configurar Respuestas (A–D)
 function setupOptionListeners() {
   const optionButtons = document.querySelectorAll('.option-btn');
-  
+
   optionButtons.forEach(btn => {
     btn.addEventListener('click', async () => {
-      if (gameState.answering) return; // Evitar doble envío
+      if (gameState.answering || gameState.timerExpired) return; // Evitar doble envío
+
+      const q = gameState.questions[gameState.questionIndex];
+      if (Date.now() >= gameState.timerDeadline) {
+        handleQuestionTimeout(q.id);
+        return;
+      }
+
       gameState.answering = true;
-      stopTimer();
+      window.clearInterval(gameState.timerInterval);
+      gameState.timerInterval = null;
       SoundFX.click();
 
       const selectedLetter = btn.getAttribute('data-option');
@@ -366,16 +433,14 @@ function setupOptionListeners() {
       // Deshabilitar todos los botones mientras se valida
       optionButtons.forEach(b => b.disabled = true);
 
-      const q = gameState.questions[gameState.questionIndex];
-
       try {
         // Enviar respuesta al backend según contrato
         const result = await window.api.answer(gameState.gameId, q.id, selectedLetter);
+        const correctLetter = result.correct ? selectedLetter : result.correct_answer;
+        showAnswerFeedback(optionButtons, correctLetter);
 
         if (result.correct) {
           SoundFX.correct();
-          btn.classList.remove('selected');
-          btn.classList.add('correct');
 
           // Actualizar premio acumulado
           if (result.prize !== undefined) {
@@ -383,30 +448,9 @@ function setupOptionListeners() {
           }
 
           if (result.game_finished) {
+            // ¡Victoria Total! (el backend ya cierra la partida)
             setPresenterMessage('¡Increíble! Has respondido las 15 preguntas. ¡Eres millonario! 🎉');
-            // ¡Victoria Total! (Llegó a la última pregunta)
-            clearProgress(); // Limpiar progreso y game_id al terminar
-
-            // Reintentar finish hasta 3 veces si falla por problemas de red
-            let finishSuccess = false;
-            const maxRetries = 3;
-
-            for (let attempt = 1; attempt <= maxRetries; attempt++) {
-              try {
-                await window.api.finish(gameState.gameId, true);
-                finishSuccess = true;
-                break;
-              } catch (finishErr) {
-                console.warn(`api.finish intento ${attempt}/${maxRetries} falló:`, finishErr);
-                if (attempt < maxRetries) {
-                  await new Promise(res => setTimeout(res, 600));
-                }
-              }
-            }
-
-            if (!finishSuccess) {
-              showToast('⚠️ No se pudo registrar tu victoria en el ranking por un error de conexión con el servidor.', 'warning');
-            }
+            clearProgress();
 
             sessionStorage.setItem('game_result', JSON.stringify({
               type: 'win',
@@ -415,46 +459,27 @@ function setupOptionListeners() {
               cleared: gameState.questionIndex + 1
             }));
 
-            const redirectDelay = finishSuccess ? 1400 : 3200;
-            setTimeout(() => window.location.href = 'results.html', redirectDelay);
+            setTimeout(() => window.location.href = 'results.html', ANSWER_FEEDBACK_MS);
           } else {
-            // Avanzar a la siguiente pregunta
+            // Avanzar a la siguiente pregunta (espera para ver el color verde)
             setPresenterMessage('¡Respuesta correcta! Muy bien. Continuamos.');
             setTimeout(() => {
               gameState.questionIndex++;
-              saveProgress(); // TAREA 2: persistir progreso
+              saveProgress();
               renderCurrentQuestion();
-            }, 1200);
+            }, ANSWER_FEEDBACK_MS);
           }
 
         } else {
           // Respuesta Incorrecta (Derrota)
           SoundFX.wrong();
-          btn.classList.remove('selected');
-          btn.classList.add('incorrect');
-
-          // Resaltar la respuesta correcta devuelta por el backend
-          if (result.correct_answer) {
-            const correctBtn = document.querySelector(`.option-btn[data-option="${result.correct_answer}"]`);
-            if (correctBtn) correctBtn.classList.add('correct');
-          }
-
           setPresenterMessage(`Vaya... Respuesta incorrecta. La correcta era la ${result.correct_answer || 'otra'}.`);
-
-          clearProgress(); // TAREA 2: limpiar progreso al terminar
-
-          sessionStorage.setItem('game_result', JSON.stringify({
-            type: 'loss',
-            player: gameState.playerName,
-            prize: formatCurrency(result.prize || 0),
-            cleared: gameState.questionIndex
-          }));
-
-          setTimeout(() => window.location.href = 'results.html', 1600);
+          clearProgress();
+          showLossResult(result.prize);
         }
 
       } catch (error) {
-        // TAREA 3: al fallar la red, NO reactivar opciones eliminadas por 50/50
+        // Al fallar la red, NO reactivar opciones eliminadas por 50/50
         console.error('Error al enviar respuesta:', error);
         btn.classList.remove('selected');
         optionButtons.forEach(b => {
@@ -464,6 +489,7 @@ function setupOptionListeners() {
           }
         });
         gameState.answering = false;
+        if (!gameState.timerExpired) scheduleQuestionTimer(q.id);
 
         if (error.status === undefined) {
           showToast('No se pudo conectar con el servidor para validar la respuesta.', 'error');
@@ -492,7 +518,7 @@ function setupLifelines() {
         gameState.usedLifelines.fiftyFifty = true;
         btn5050.disabled = true;
         btn5050.classList.add('used');
-        saveProgress(); // TAREA 2: persistir estado del comodín
+        saveProgress();
 
         // Ocultar las 2 opciones eliminadas devueltas por el backend
         if (res.removed_options && Array.isArray(res.removed_options)) {
@@ -522,7 +548,7 @@ function setupLifelines() {
         gameState.usedLifelines.audience = true;
         btnAudience.disabled = true;
         btnAudience.classList.add('used');
-        saveProgress(); // TAREA 2: persistir estado del comodín
+        saveProgress();
 
         renderAudienceChart(res.percentages || { A: 25, B: 25, C: 25, D: 25 });
         setPresenterMessage('Hemos preguntado al público. Mira los porcentajes de la votación.');
@@ -544,7 +570,7 @@ function setupLifelines() {
         gameState.usedLifelines.friend = true;
         btnFriend.disabled = true;
         btnFriend.classList.add('used');
-        saveProgress(); // TAREA 2: persistir estado del comodín
+        saveProgress();
 
         const friendMsgEl = document.getElementById('friend-message');
         if (friendMsgEl) {
@@ -566,7 +592,7 @@ function handleLifelineError(error, buttonEl, key) {
     gameState.usedLifelines[key] = true;
     buttonEl.disabled = true;
     buttonEl.classList.add('used');
-    saveProgress(); // TAREA 2: persistir estado tras 409
+    saveProgress();
   } else if (error.status === undefined) {
     showToast('No se pudo conectar con el servidor.', 'error');
   } else {
@@ -624,7 +650,7 @@ function setupQuitFlow() {
         btnConfirmQuit.disabled = true;
         const res = await window.api.quit(gameState.gameId);
 
-        clearProgress(); // TAREA 2: limpiar progreso al retirarse
+        clearProgress();
 
         sessionStorage.setItem('game_result', JSON.stringify({
           type: 'quit',

@@ -52,7 +52,9 @@ document.addEventListener('DOMContentLoaded', () => {
         resultTitle.textContent = 'FIN DEL JUEGO';
       }
       if (resultMessage) {
-        resultMessage.textContent = `Respuesta incorrecta. Llegaste hasta la pregunta ${result.cleared || 0}. ¡Inténtalo de nuevo!`;
+        resultMessage.textContent = result.reason === 'timeout'
+          ? `Se agotó el tiempo. Llegaste hasta la pregunta ${result.cleared || 0}. ¡Inténtalo de nuevo!`
+          : `Respuesta incorrecta. Llegaste hasta la pregunta ${result.cleared || 0}. ¡Inténtalo de nuevo!`;
       }
     }
 
