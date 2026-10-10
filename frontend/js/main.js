@@ -1,25 +1,7 @@
 /**
  * Controlador de la Pantalla Principal (index.html)
+ * Requiere: utils.js (showToast), api.js
  */
-
-function showToast(message, type = 'error') {
-  const container = document.getElementById('toast-container');
-  if (!container) return;
-
-  const toast = document.createElement('div');
-  toast.className = `toast toast-${type}`;
-  toast.innerHTML = `
-    <span>${type === 'error' ? '⚠️' : type === 'success' ? '✅' : 'ℹ️'}</span>
-    <span>${message}</span>
-  `;
-  container.appendChild(toast);
-
-  setTimeout(() => {
-    toast.style.opacity = '0';
-    toast.style.transform = 'translateX(100%)';
-    setTimeout(() => toast.remove(), 300);
-  }, 4000);
-}
 
 document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('start-game-form');
@@ -44,6 +26,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (btnCloseInstructions) btnCloseInstructions.addEventListener('click', closeModal);
   if (btnGotIt) btnGotIt.addEventListener('click', closeModal);
+
+  // Alternar sonido (preferencia persistente en localStorage)
+  const btnSound = document.getElementById('btn-sound');
+  const updateSoundIcon = () => {
+    if (!btnSound) return;
+    const muted = localStorage.getItem('mute_audio') === '1';
+    btnSound.textContent = muted ? '🔇' : '🔊';
+    btnSound.setAttribute('aria-label', muted ? 'Activar sonido' : 'Silenciar sonido');
+  };
+  if (btnSound) {
+    updateSoundIcon();
+    btnSound.addEventListener('click', () => {
+      const muted = localStorage.getItem('mute_audio') === '1';
+      localStorage.setItem('mute_audio', muted ? '0' : '1');
+      updateSoundIcon();
+    });
+  }
 
   // Iniciar Juego (Validación + Llamadas a API)
   if (form && nameInput) {

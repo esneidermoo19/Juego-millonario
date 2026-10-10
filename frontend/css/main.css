@@ -1,17 +1,35 @@
 /* =========================================================
    MILLIONAIRE GAME - DESIGN SYSTEM & GLOBAL STYLES
-   Colores: Fondo azul oscuro, Dorado para dinero, Rosa/Morado para botones
+   Identidad 2D "concurso de televisión":
+   - Azul noche (fondo / escenario)
+   - Azul eléctrico / neón (luces, marcos, bordes, reflejos)
+   - Morado / violeta (detalles decorativos y fondos de logo)
+   - Dorado / amarillo (premios, monedas, temporizador, cantidades)
+   - Blanco de alto contraste (textos y diálogos)
    ========================================================= */
 
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap');
 
 :root {
-  /* Fondo y Superficies */
-  --bg-dark: #070b19;
-  --bg-secondary: #0d152d;
-  --bg-card: rgba(15, 23, 49, 0.85);
-  --bg-card-hover: rgba(22, 34, 70, 0.9);
+  /* Escenario y Superficies */
+  --blue-night: #050a1f;
+  --blue-midnight: #081230;
+  --bg-dark: #050a1f;
+  --bg-secondary: #0a1230;
+  --bg-card: rgba(10, 18, 48, 0.86);
+  --bg-card-hover: rgba(15, 27, 66, 0.9);
   --bg-glass: rgba(255, 255, 255, 0.04);
+
+  /* Azul eléctrico / neón (luces y marcos) */
+  --blue-electric: #1e9fff;
+  --blue-neon: #35e0ff;
+  --blue-neon-soft: rgba(53, 224, 255, 0.55);
+  --neon-frame: rgba(53, 224, 255, 0.65);
+  --neon-glow: 0 0 14px rgba(53, 224, 255, 0.7), 0 0 30px rgba(30, 159, 255, 0.35);
+
+  /* Morado / Violeta (decorativo) */
+  --purple: #8b5cf6;
+  --violet: #a855f7;
 
   /* Acentos de Dinero (Dorado) */
   --gold-primary: #f5b041;
@@ -59,28 +77,74 @@
 
 body {
   font-family: var(--font-family);
-  background-color: var(--bg-dark);
-  background-image: 
-    radial-gradient(circle at 50% 0%, rgba(139, 92, 246, 0.22) 0%, transparent 55%),
-    radial-gradient(circle at 90% 90%, rgba(243, 156, 18, 0.12) 0%, transparent 45%),
-    radial-gradient(circle at 10% 80%, rgba(236, 72, 153, 0.12) 0%, transparent 45%);
+  background-color: var(--blue-night);
   color: var(--text-main);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   line-height: 1.5;
   overflow-x: hidden;
+  position: relative;
+}
+
+/* Capa de escenario 2D global (fondo ilustrado sin presentador) */
+.stage-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: -3;
+  background-image: url('../assets/images/fondo-escenario-2d.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.stage-backdrop::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 50% -10%, rgba(53, 224, 255, 0.22) 0%, transparent 55%),
+    radial-gradient(circle at 12% 90%, rgba(168, 85, 247, 0.28) 0%, transparent 50%),
+    radial-gradient(circle at 90% 90%, rgba(243, 156, 18, 0.18) 0%, transparent 45%),
+    linear-gradient(180deg, rgba(5, 10, 31, 0.55) 0%, rgba(5, 10, 31, 0.82) 100%);
+}
+
+/* Haces de luz animados (spotlight-sweep) */
+.spotlight-sweep {
+  position: fixed;
+  top: -20%;
+  left: -30%;
+  width: 60%;
+  height: 160%;
+  z-index: -2;
+  pointer-events: none;
+  background: linear-gradient(105deg, transparent 30%, rgba(53, 224, 255, 0.14) 48%, rgba(53, 224, 255, 0.24) 50%, rgba(53, 224, 255, 0.14) 52%, transparent 70%);
+  filter: blur(4px);
+  transform: rotate(14deg);
+  animation: spotlightSweep 14s ease-in-out infinite alternate;
+}
+
+.spotlight-sweep.sweep-2 {
+  top: -30%;
+  left: 55%;
+  width: 55%;
+  animation-duration: 18s;
+  animation-delay: -6s;
+  background: linear-gradient(105deg, transparent 30%, rgba(168, 85, 247, 0.14) 48%, rgba(168, 85, 247, 0.22) 50%, rgba(168, 85, 247, 0.14) 52%, transparent 70%);
+  transform: rotate(-12deg);
 }
 
 /* Layout Principal */
 .app-container {
   width: 100%;
-  max-width: 1180px;
+  max-width: 1220px;
   margin: 0 auto;
   padding: 1.5rem;
   flex: 1;
   display: flex;
   flex-direction: column;
+  position: relative;
+  z-index: 1;
 }
 
 /* Tarjeta Glassmorphism */
@@ -99,7 +163,19 @@ body {
   border: var(--border-gold);
 }
 
-/* Botones Principales (Rosa / Morado) */
+/* Marco de neón azul eléctrico (paneles de concurso) */
+.neon-frame {
+  border: 1px solid var(--neon-frame);
+  box-shadow: var(--neon-glow), inset 0 0 22px rgba(53, 224, 255, 0.08);
+  animation: ambientGlow 4s ease-in-out infinite;
+}
+
+.neon-frame--gold {
+  border: 1px solid rgba(243, 156, 18, 0.55);
+  box-shadow: var(--gold-glow), inset 0 0 22px rgba(243, 156, 18, 0.1);
+}
+
+/* Botones Principales */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -155,6 +231,11 @@ body {
   transform: translateY(-2px);
 }
 
+/* Botón destacado JUGAR con pulso */
+.btn-play-pulse {
+  animation: buttonPulse 2s ease-in-out infinite;
+}
+
 .btn-danger {
   background: rgba(239, 68, 68, 0.15);
   color: #fca5a5;
@@ -172,6 +253,38 @@ body {
   cursor: not-allowed;
   transform: none !important;
   box-shadow: none !important;
+}
+
+/* Iconos circulares de navegación / comodines (neón) */
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(10, 18, 48, 0.85);
+  border: 1.5px solid var(--neon-frame);
+  color: var(--blue-neon);
+  font-size: 1.25rem;
+  cursor: pointer;
+  transition: var(--transition);
+  box-shadow: 0 0 12px rgba(53, 224, 255, 0.35);
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+.icon-btn:hover:not(:disabled) {
+  background: rgba(53, 224, 255, 0.15);
+  box-shadow: var(--neon-glow);
+  transform: translateY(-2px);
+}
+
+.icon-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  filter: grayscale(1);
+  box-shadow: none;
 }
 
 /* Inputs */
@@ -195,7 +308,7 @@ body {
   width: 100%;
   padding: 1rem 1.25rem;
   background: rgba(10, 16, 35, 0.8);
-  border: 1px solid rgba(168, 85, 247, 0.35);
+  border: 1px solid rgba(53, 224, 255, 0.35);
   border-radius: var(--radius-md);
   color: #ffffff;
   font-family: var(--font-family);
@@ -206,8 +319,8 @@ body {
 }
 
 .input-field:focus {
-  border-color: var(--btn-pink);
-  box-shadow: 0 0 18px rgba(236, 72, 153, 0.35);
+  border-color: var(--blue-neon);
+  box-shadow: 0 0 18px rgba(53, 224, 255, 0.35);
 }
 
 .input-field::placeholder {
@@ -219,6 +332,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 1rem;
   padding: 1rem 0 1.5rem 0;
   border-bottom: 1px solid rgba(255, 255, 255, 0.07);
   margin-bottom: 1.5rem;
@@ -233,12 +347,14 @@ body {
   font-weight: 900;
   letter-spacing: 1.5px;
   text-transform: uppercase;
+  animation: logoFloat 4.5s ease-in-out infinite;
 }
 
 .brand-logo .logo-gold {
   background: var(--gold-gradient);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 24px rgba(243, 156, 18, 0.25);
 }
 
 .brand-logo .logo-pink {
@@ -265,7 +381,7 @@ body {
   pointer-events: auto;
   padding: 1rem 1.25rem;
   border-radius: var(--radius-sm);
-  background: rgba(15, 23, 49, 0.95);
+  background: rgba(10, 18, 48, 0.95);
   backdrop-filter: blur(12px);
   color: #fff;
   font-size: 0.95rem;
@@ -317,12 +433,12 @@ body {
 
 .modal-dialog {
   background: var(--bg-card);
-  border: var(--border-purple);
+  border: 1px solid rgba(53, 224, 255, 0.45);
   border-radius: var(--radius-lg);
   padding: 2rem;
   max-width: 540px;
   width: 100%;
-  box-shadow: var(--shadow-lg), 0 0 40px rgba(139, 92, 246, 0.2);
+  box-shadow: var(--shadow-lg), 0 0 40px rgba(53, 224, 255, 0.18);
   transform: scale(0.92);
   transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
@@ -368,4 +484,31 @@ body {
   color: var(--text-muted);
   font-size: 0.85rem;
   border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Reflejo animado sobre paneles de cristal (stage-shimmer) */
+.shimmer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -75%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(105deg, transparent, rgba(255, 255, 255, 0.12), transparent);
+  transform: skewX(-20deg);
+  animation: stageShimmer 6s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* Brillo suave en "pantallas" del escenario (screen-glow) */
+.screen-glow {
+  animation: screenGlow 5s ease-in-out infinite;
+}
+
+/* Responsive helpers */
+@media (max-width: 640px) {
+  .header-nav {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }

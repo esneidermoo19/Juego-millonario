@@ -8,6 +8,11 @@
   <link rel="stylesheet" href="css/animations.css">
 </head>
 <body>
+  <!-- Escenario ilustrado 2D de fondo (sin presentador) -->
+  <div class="stage-backdrop" aria-hidden="true"></div>
+  <div class="spotlight-sweep" aria-hidden="true"></div>
+  <div class="spotlight-sweep sweep-2" aria-hidden="true"></div>
+
   <!-- Contenedor para notificaciones y alertas de error -->
   <div id="toast-container" class="toast-container"></div>
 
@@ -17,22 +22,26 @@
         <span class="logo-gold">MILLIONAIRE</span>
         <span class="logo-pink">GAME</span>
       </a>
-      <button id="language-toggle" class="btn btn-secondary" type="button">English</button>
-      <button id="btn-open-instructions" class="btn btn-secondary">📖 Instrucciones</button>
+      <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+        <button id="language-toggle" class="btn btn-secondary" type="button">English</button>
+        <button id="btn-sound" class="icon-btn" title="Activar / silenciar sonido" aria-label="Sonido">🔊</button>
+        <button id="btn-open-instructions" class="btn btn-secondary">📖 Instrucciones</button>
+        <a href="ranking.html" class="icon-btn" title="Ver clasificación" aria-label="Ranking">🏆</a>
+      </div>
     </header>
 
-    <main style="flex: 1; display: flex; align-items: center; justify-content: center;">
-      <div class="glass-card gold-border anim-fade-in" style="max-width: 520px; width: 100%; padding: 2.5rem 2rem; text-align: center;">
+    <main style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 2rem 0;">
+      <div class="glass-card gold-border neon-frame shimmer anim-fade-in" style="max-width: 560px; width: 100%; padding: 2.75rem 2.25rem; text-align: center;">
         
-        <div class="anim-floating" style="font-size: 3.5rem; margin-bottom: 1rem;">
+        <div class="anim-floating" style="font-size: 3.5rem; margin-bottom: 0.75rem; filter: drop-shadow(0 0 18px rgba(243, 156, 18, 0.5));">
           💰
         </div>
 
-        <h1 style="font-size: 2.1rem; font-weight: 900; margin-bottom: 0.5rem; text-transform: uppercase;">
+        <h1 style="font-size: 2.3rem; font-weight: 900; margin-bottom: 0.6rem; text-transform: uppercase; line-height: 1.1;">
           <span class="logo-gold">¿Quién Quiere Ser</span><br>
           <span class="logo-pink">Millonario?</span>
         </h1>
-        <p style="color: var(--text-muted); margin-bottom: 2rem; font-size: 1.05rem;">
+        <p style="color: var(--text-muted); margin-bottom: 2.25rem; font-size: 1.05rem;">
           Pon a prueba tus conocimientos y responde las 15 preguntas para ganar el premio mayor.
         </p>
 
@@ -50,7 +59,7 @@
             >
           </div>
 
-          <button type="submit" id="btn-play" class="btn btn-primary" style="padding: 1.1rem; font-size: 1.2rem;">
+          <button type="submit" id="btn-play" class="btn btn-primary btn-play-pulse" style="padding: 1.15rem; font-size: 1.25rem;">
             🎮 JUGAR AHORA
           </button>
 
@@ -90,6 +99,7 @@
   </div>
 
   <script src="js/i18n.js"></script>
+  <script src="js/utils.js"></script>
   <script src="js/api.js"></script>
   <script src="js/main.js"></script>
 </body>

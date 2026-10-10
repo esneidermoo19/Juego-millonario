@@ -1,6 +1,76 @@
 /* =========================================================
    ANIMATIONS & MICRO-INTERACTIONS
+   Animaciones 2D ligeras y continuas para el concurso
    ========================================================= */
+
+/* Haces de luz del fondo desplazándose (spotlight-sweep) */
+@keyframes spotlightSweep {
+  0% {
+    transform: translateX(-12%) rotate(14deg);
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(45%) rotate(14deg);
+    opacity: 0.5;
+  }
+}
+
+/* Variación suave de intensidad luminosa de los marcos neón (ambient-glow) */
+@keyframes ambientGlow {
+  0%, 100% {
+    box-shadow: 0 0 12px rgba(53, 224, 255, 0.55), 0 0 28px rgba(30, 159, 255, 0.3), inset 0 0 20px rgba(53, 224, 255, 0.07);
+  }
+  50% {
+    box-shadow: 0 0 22px rgba(53, 224, 255, 0.85), 0 0 46px rgba(30, 159, 255, 0.5), inset 0 0 30px rgba(53, 224, 255, 0.14);
+  }
+}
+
+/* Movimiento vertical suave del logotipo (logo-float) */
+@keyframes logoFloat {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+/* Pulsación sutil del botón principal / respuestas (button-pulse) */
+@keyframes buttonPulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 18px rgba(236, 72, 153, 0.45);
+  }
+  50% {
+    transform: scale(1.04);
+    box-shadow: 0 0 34px rgba(236, 72, 153, 0.85), 0 0 50px rgba(168, 85, 247, 0.45);
+  }
+}
+
+/* Reflejos animados en plataforma y paneles de cristal (stage-shimmer) */
+@keyframes stageShimmer {
+  0% {
+    left: -75%;
+  }
+  60%, 100% {
+    left: 125%;
+  }
+}
+
+/* Brillo suave en pantallas del escenario (screen-glow) */
+@keyframes screenGlow {
+  0%, 100% {
+    filter: brightness(1);
+    box-shadow: 0 0 18px rgba(53, 224, 255, 0.35);
+  }
+  50% {
+    filter: brightness(1.25);
+    box-shadow: 0 0 32px rgba(53, 224, 255, 0.65);
+  }
+}
 
 @keyframes pulseGlowGold {
   0%, 100% {
@@ -23,38 +93,35 @@
 @keyframes correctFlash {
   0%, 100% {
     background: #059669 !important;
-    border-color: #34d399 !important;
-    box-shadow: 0 0 30px rgba(52, 211, 153, 0.9) !important;
     color: #ffffff !important;
+    filter: drop-shadow(0 0 1px #34d399) drop-shadow(0 0 18px rgba(52, 211, 153, 0.9));
   }
   50% {
     background: #064e3b !important;
-    border-color: #10b981 !important;
+    filter: drop-shadow(0 0 1px #10b981) drop-shadow(0 0 12px rgba(16, 185, 129, 0.6));
   }
 }
 
 @keyframes incorrectFlash {
   0%, 100% {
     background: #dc2626 !important;
-    border-color: #f87171 !important;
-    box-shadow: 0 0 30px rgba(248, 113, 113, 0.9) !important;
     color: #ffffff !important;
+    filter: drop-shadow(0 0 1px #f87171) drop-shadow(0 0 18px rgba(248, 113, 113, 0.9));
   }
   50% {
     background: #7f1d1d !important;
-    border-color: #ef4444 !important;
+    filter: drop-shadow(0 0 1px #ef4444) drop-shadow(0 0 12px rgba(239, 68, 68, 0.6));
   }
 }
 
 @keyframes selectedOptionGlow {
   0%, 100% {
-    background: rgba(243, 156, 18, 0.25);
-    border-color: #f39c12;
-    box-shadow: 0 0 20px rgba(243, 156, 18, 0.6);
+    background: rgba(243, 156, 18, 0.55);
+    filter: drop-shadow(0 0 1px #f39c12) drop-shadow(0 0 16px rgba(243, 156, 18, 0.7));
   }
   50% {
-    background: rgba(243, 156, 18, 0.45);
-    border-color: #f1c40f;
+    background: rgba(241, 196, 15, 0.7);
+    filter: drop-shadow(0 0 1px #f1c40f) drop-shadow(0 0 22px rgba(241, 196, 15, 0.85));
   }
 }
 
@@ -98,12 +165,51 @@
   }
 }
 
+/* Giro del indicador circular del temporizador */
+@keyframes timerPulse {
+  0%, 100% {
+    box-shadow: 0 0 12px rgba(243, 156, 18, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 26px rgba(243, 156, 18, 0.9);
+  }
+}
+
+@keyframes timerUrgent {
+  0%, 100% {
+    box-shadow: 0 0 16px rgba(239, 68, 68, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(239, 68, 68, 1);
+  }
+}
+
+/* Parpadeo del marco hexagonal al acertar (verde) */
+@keyframes correctFrame {
+  0%, 100% {
+    filter: drop-shadow(0 0 10px rgba(52, 211, 153, 0.7));
+  }
+  50% {
+    filter: drop-shadow(0 0 28px rgba(52, 211, 153, 1));
+  }
+}
+
+/* Parpadeo del marco hexagonal al fallar (rojo) */
+@keyframes incorrectFrame {
+  0%, 100% {
+    filter: drop-shadow(0 0 10px rgba(248, 113, 113, 0.7));
+  }
+  50% {
+    filter: drop-shadow(0 0 28px rgba(248, 113, 113, 1));
+  }
+}
+
 .anim-fade-in {
   animation: fadeInUp 0.45s ease-out forwards;
 }
 
 .anim-floating {
-  animation: floatLogo 3.5s ease-in-out infinite;
+  animation: logoFloat 3.5s ease-in-out infinite;
 }
 
 .anim-pulse-gold {
@@ -112,4 +218,16 @@
 
 .anim-pulse-pink {
   animation: pulseGlowPink 2s infinite ease-in-out;
+}
+
+/* Accesibilidad: respetar usuarios sensibles al movimiento */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
 }
