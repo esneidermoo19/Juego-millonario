@@ -43,14 +43,14 @@
 }
 
 .ranking-table th {
-  background: rgba(168, 85, 247, 0.12);
+  background: rgba(53, 224, 255, 0.1);
   color: var(--gold-light);
   font-weight: 800;
   text-transform: uppercase;
   font-size: 0.85rem;
   letter-spacing: 1px;
   padding: 1.1rem 1.5rem;
-  border-bottom: 2px solid rgba(168, 85, 247, 0.3);
+  border-bottom: 2px solid rgba(53, 224, 255, 0.3);
 }
 
 .ranking-table td {
@@ -63,7 +63,7 @@
 }
 
 .ranking-table tr:hover td {
-  background: rgba(168, 85, 247, 0.08);
+  background: rgba(53, 224, 255, 0.08);
 }
 
 /* Badges de Podio */

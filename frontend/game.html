@@ -9,12 +9,18 @@
   <link rel="stylesheet" href="css/animations.css">
 </head>
 <body>
+  <!-- Escenario ilustrado 2D de fondo (sin presentador) -->
+  <div class="stage-backdrop" aria-hidden="true"></div>
+  <div class="spotlight-sweep" aria-hidden="true"></div>
+  <div class="spotlight-sweep sweep-2" aria-hidden="true"></div>
+
   <!-- Contenedor para notificaciones y alertas -->
   <div id="toast-container" class="toast-container"></div>
 
   <div class="app-container">
     <!-- Encabezado del Juego con Estadísticas en Vivo -->
-    <header class="game-header">
+    <header class="game-header neon-frame">
+      <a href="index.html" class="icon-btn" title="Volver al inicio" aria-label="Inicio">🏠</a>
       <div class="game-stat-group">
         <div class="stat-item">
           <span class="stat-label">Jugador</span>
@@ -29,62 +35,114 @@
           <span id="prize-display" class="stat-value gold">$0</span>
         </div>
       </div>
-
-      <button id="btn-quit" class="btn btn-danger" style="padding: 0.65rem 1.25rem; font-size: 0.95rem;">
-        🚪 Retirarse
-      </button>
+      <div class="header-actions">
+        <button id="btn-sound-game" class="icon-btn" title="Sonido" aria-label="Sonido">🔊</button>
+        <button id="btn-quit" class="btn btn-danger" style="padding: 0.6rem 1.2rem; font-size: 0.9rem;">
+          🚪 Retirarse
+        </button>
+      </div>
     </header>
 
     <!-- Arena Principal de Juego -->
     <main class="game-arena">
       <div class="arena-main">
-        <!-- Panel de Comodines -->
-        <div class="lifelines-panel">
-          <button id="lifeline-5050" class="lifeline-btn" title="Eliminar 2 opciones incorrectas">
-            <span class="lifeline-icon">⚖️</span>
-            <span>50:50</span>
-          </button>
-          <button id="lifeline-audience" class="lifeline-btn" title="Consultar al público">
-            <span class="lifeline-icon">📊</span>
-            <span>Público</span>
-          </button>
-          <button id="lifeline-friend" class="lifeline-btn" title="Llamar a un amigo">
-            <span class="lifeline-icon">📞</span>
-            <span>Amigo</span>
-          </button>
+        <!-- Fila superior: Temporizador + Comodines -->
+        <div class="arena-top-row">
+          <div class="timer-wrap" aria-live="polite">
+            <div class="timer-ring screen-glow" id="timer-ring">
+              <div class="timer-inner">
+                <span id="timer-value" class="timer-value">45</span>
+                <span class="timer-unit">seg</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="lifelines-panel">
+            <button id="lifeline-5050" class="lifeline-btn" title="Eliminar 2 opciones incorrectas">
+              <span class="lifeline-icon">⚖️</span>
+              <span class="lifeline-label">50:50</span>
+            </button>
+            <button id="lifeline-audience" class="lifeline-btn" title="Consultar al público">
+              <span class="lifeline-icon">📊</span>
+              <span class="lifeline-label">Público</span>
+            </button>
+            <button id="lifeline-friend" class="lifeline-btn" title="Llamar a un amigo">
+              <span class="lifeline-icon">📞</span>
+              <span class="lifeline-label">Amigo</span>
+            </button>
+          </div>
         </div>
 
-        <!-- Pregunta Actual -->
+        <!-- Panel de Pregunta (biselado hexagonal) -->
         <div class="question-card anim-fade-in" id="question-card">
-          <span id="question-text">Cargando pregunta...</span>
+          <div class="hex-frame">
+            <div class="hex-inner question-hex-inner shimmer">
+              <span id="question-text">Cargando pregunta...</span>
+            </div>
+          </div>
         </div>
 
-        <!-- Opciones A, B, C, D -->
+        <!-- Opciones A, B, C, D (hexágonos alargados) -->
         <div class="options-container" id="options-container">
           <button class="option-btn" data-option="A">
-            <span class="option-badge">A</span>
-            <span class="option-text">...</span>
+            <span class="hex-frame">
+              <span class="hex-inner option-hex-inner">
+                <span class="option-badge">A</span>
+                <span class="option-text">...</span>
+              </span>
+            </span>
           </button>
           <button class="option-btn" data-option="B">
-            <span class="option-badge">B</span>
-            <span class="option-text">...</span>
+            <span class="hex-frame">
+              <span class="hex-inner option-hex-inner">
+                <span class="option-badge">B</span>
+                <span class="option-text">...</span>
+              </span>
+            </span>
           </button>
           <button class="option-btn" data-option="C">
-            <span class="option-badge">C</span>
-            <span class="option-text">...</span>
+            <span class="hex-frame">
+              <span class="hex-inner option-hex-inner">
+                <span class="option-badge">C</span>
+                <span class="option-text">...</span>
+              </span>
+            </span>
           </button>
           <button class="option-btn" data-option="D">
-            <span class="option-badge">D</span>
-            <span class="option-text">...</span>
+            <span class="hex-frame">
+              <span class="hex-inner option-hex-inner">
+                <span class="option-badge">D</span>
+                <span class="option-text">...</span>
+              </span>
+            </span>
           </button>
+        </div>
+
+        <!-- Presentador + Bocadillo de Diálogo -->
+        <div class="presenter-zone">
+          <div class="presenter-screen screen-glow">
+            <img src="assets/images/escenario-presentador-2d.png" alt="Presentador del concurso" loading="lazy">
+          </div>
+          <div class="presenter-bubble" role="status" aria-live="polite">
+            <p id="presenter-message">¡Bienvenido al concurso! Responde las preguntas y escala hasta el millón.</p>
+          </div>
         </div>
       </div>
 
       <!-- Barra Lateral: Escalera de Premios / Dinero -->
-      <aside class="glass-card gold-border ladder-sidebar">
+      <aside class="ladder-sidebar neon-frame">
         <div class="ladder-header">💰 Escala de Premios</div>
         <div class="ladder-list" id="ladder-list">
           <!-- Generado dinámicamente en game.js -->
+        </div>
+        <div class="withdraw-box neon-frame--gold">
+          <div class="withdraw-row">
+            <span class="withdraw-label">Ganar</span>
+            <span id="withdraw-prize" class="withdraw-value">$0</span>
+          </div>
+          <button id="btn-withdraw" class="btn btn-gold" style="width: 100%; padding: 0.6rem; font-size: 0.85rem;">
+            💼 Recoger
+          </button>
         </div>
       </aside>
     </main>

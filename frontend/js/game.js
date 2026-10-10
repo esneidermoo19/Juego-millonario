@@ -16,6 +16,7 @@ const SoundFX = {
   },
   playTone(freq, type, duration, delay = 0) {
     try {
+      if (localStorage.getItem('mute_audio') === '1') return;
       this.init();
       if (!this.ctx) return;
       const osc = this.ctx.createOscillator();
@@ -136,6 +137,54 @@ window.addEventListener('pageshow', (event) => {
 });
 // ────────────────────────────────────────────────────────────────────────
 
+// ─── Temporizador circular (indicador visual de cuenta regresiva) ──────
+const TIMER_SECONDS = 45;
+let timerInterval = null;
+let timeLeft = TIMER_SECONDS;
+
+function startTimer() {
+  stopTimer();
+  timeLeft = TIMER_SECONDS;
+  updateTimerDisplay();
+  timerInterval = setInterval(() => {
+    timeLeft -= 1;
+    updateTimerDisplay();
+    if (timeLeft <= 0) {
+      setPresenterMessage('⏰ ¡Se ha agotado el tiempo! Tómate un momento y elige tu respuesta.');
+      stopTimer();
+    }
+  }, 1000);
+}
+
+function stopTimer() {
+  if (timerInterval) {
+    clearInterval(timerInterval);
+    timerInterval = null;
+  }
+}
+
+function updateTimerDisplay() {
+  const valueEl = document.getElementById('timer-value');
+  const ringEl = document.getElementById('timer-ring');
+  const seconds = Math.max(0, timeLeft);
+  if (valueEl) valueEl.textContent = seconds;
+  if (ringEl) {
+    const pct = Math.max(0, Math.min(100, (seconds / TIMER_SECONDS) * 100));
+    ringEl.style.setProperty('--timer-pct', pct + '%');
+    if (seconds <= 10) {
+      ringEl.classList.add('urgent');
+    } else {
+      ringEl.classList.remove('urgent');
+    }
+  }
+}
+
+// ─── Bocadillo de diálogo del presentador ───────────────────────────────
+function setPresenterMessage(text) {
+  const el = document.getElementById('presenter-message');
+  if (el) el.textContent = text;
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
   // 1. Validar sesión existente
   gameState.playerId = sessionStorage.getItem('player_id');
@@ -174,6 +223,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     renderCurrentQuestion();
 
+    setPresenterMessage(`¡Bienvenido al concurso, ${gameState.playerName}! Responde las 15 preguntas para llevarte el gran premio.`);
+
     // Restaurar estado visual de comodines ya usados (TAREA 2)
     if (restored) {
       applyRestoredLifelineState();
@@ -192,6 +243,17 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupLifelines();
   setupQuitFlow();
   setupModalCloses();
+
+  // 7. Alternar sonido en la cabecera del juego
+  const btnSoundGame = document.getElementById('btn-sound-game');
+  if (btnSoundGame) {
+    btnSoundGame.textContent = localStorage.getItem('mute_audio') === '1' ? '🔇' : '🔊';
+    btnSoundGame.addEventListener('click', () => {
+      const muted = localStorage.getItem('mute_audio') === '1';
+      localStorage.setItem('mute_audio', muted ? '0' : '1');
+      btnSoundGame.textContent = muted ? '🔊' : '🔇';
+    });
+  }
 });
 
 // Restaurar el estado visual de los botones de comodines tras recarga (TAREA 2)
@@ -250,6 +312,11 @@ function renderCurrentQuestion() {
     prizeDisplay.textContent = formatCurrency(gameState.currentPrize);
   }
 
+  const withdrawPrize = document.getElementById('withdraw-prize');
+  if (withdrawPrize) {
+    withdrawPrize.textContent = formatCurrency(gameState.currentPrize);
+  }
+
   if (questionText) {
     questionText.textContent = q.question;
   }
@@ -277,6 +344,9 @@ function renderCurrentQuestion() {
     btn.className = 'option-btn';
     btn.disabled = false;
   });
+
+  // Reiniciar temporizador para la nueva pregunta
+  startTimer();
 }
 
 // Configurar Respuestas (A–D)
@@ -287,6 +357,7 @@ function setupOptionListeners() {
     btn.addEventListener('click', async () => {
       if (gameState.answering) return; // Evitar doble envío
       gameState.answering = true;
+      stopTimer();
       SoundFX.click();
 
       const selectedLetter = btn.getAttribute('data-option');
@@ -312,6 +383,7 @@ function setupOptionListeners() {
           }
 
           if (result.game_finished) {
+            setPresenterMessage('¡Increíble! Has respondido las 15 preguntas. ¡Eres millonario! 🎉');
             // ¡Victoria Total! (Llegó a la última pregunta)
             clearProgress(); // Limpiar progreso y game_id al terminar
 
@@ -347,6 +419,7 @@ function setupOptionListeners() {
             setTimeout(() => window.location.href = 'results.html', redirectDelay);
           } else {
             // Avanzar a la siguiente pregunta
+            setPresenterMessage('¡Respuesta correcta! Muy bien. Continuamos.');
             setTimeout(() => {
               gameState.questionIndex++;
               saveProgress(); // TAREA 2: persistir progreso
@@ -365,6 +438,8 @@ function setupOptionListeners() {
             const correctBtn = document.querySelector(`.option-btn[data-option="${result.correct_answer}"]`);
             if (correctBtn) correctBtn.classList.add('correct');
           }
+
+          setPresenterMessage(`Vaya... Respuesta incorrecta. La correcta era la ${result.correct_answer || 'otra'}.`);
 
           clearProgress(); // TAREA 2: limpiar progreso al terminar
 
@@ -429,6 +504,7 @@ function setupLifelines() {
             }
           });
         }
+        setPresenterMessage('Comodín 50:50 activado. He eliminado dos respuestas incorrectas.');
       } catch (error) {
         handleLifelineError(error, btn5050, 'fiftyFifty');
       }
@@ -449,6 +525,7 @@ function setupLifelines() {
         saveProgress(); // TAREA 2: persistir estado del comodín
 
         renderAudienceChart(res.percentages || { A: 25, B: 25, C: 25, D: 25 });
+        setPresenterMessage('Hemos preguntado al público. Mira los porcentajes de la votación.');
         openModal('modal-audience');
       } catch (error) {
         handleLifelineError(error, btnAudience, 'audience');
@@ -473,6 +550,7 @@ function setupLifelines() {
         if (friendMsgEl) {
           friendMsgEl.textContent = `"${res.message || 'Creo que deberías revisar bien las opciones antes de responder.'}"`;
         }
+        setPresenterMessage('Estamos llamando a tu amigo de confianza para que te ayude.');
         openModal('modal-friend');
       } catch (error) {
         handleLifelineError(error, btnFriend, 'friend');
@@ -525,12 +603,19 @@ function setupQuitFlow() {
   const quitPrizePreview = document.getElementById('quit-prize-preview');
   const btnConfirmQuit = document.getElementById('btn-confirm-quit-action');
 
+  const openQuitModal = () => {
+    if (gameState.answering) return;
+    if (quitPrizePreview) quitPrizePreview.textContent = formatCurrency(gameState.currentPrize);
+    openModal('modal-confirm-quit');
+  };
+
   if (btnQuit) {
-    btnQuit.addEventListener('click', () => {
-      if (gameState.answering) return;
-      if (quitPrizePreview) quitPrizePreview.textContent = formatCurrency(gameState.currentPrize);
-      openModal('modal-confirm-quit');
-    });
+    btnQuit.addEventListener('click', openQuitModal);
+  }
+
+  const btnWithdraw = document.getElementById('btn-withdraw');
+  if (btnWithdraw) {
+    btnWithdraw.addEventListener('click', openQuitModal);
   }
 
   if (btnConfirmQuit) {

@@ -27,6 +27,23 @@ document.addEventListener('DOMContentLoaded', () => {
   if (btnCloseInstructions) btnCloseInstructions.addEventListener('click', closeModal);
   if (btnGotIt) btnGotIt.addEventListener('click', closeModal);
 
+  // Alternar sonido (preferencia persistente en localStorage)
+  const btnSound = document.getElementById('btn-sound');
+  const updateSoundIcon = () => {
+    if (!btnSound) return;
+    const muted = localStorage.getItem('mute_audio') === '1';
+    btnSound.textContent = muted ? '🔇' : '🔊';
+    btnSound.setAttribute('aria-label', muted ? 'Activar sonido' : 'Silenciar sonido');
+  };
+  if (btnSound) {
+    updateSoundIcon();
+    btnSound.addEventListener('click', () => {
+      const muted = localStorage.getItem('mute_audio') === '1';
+      localStorage.setItem('mute_audio', muted ? '0' : '1');
+      updateSoundIcon();
+    });
+  }
+
   // Iniciar Juego (Validación + Llamadas a API)
   if (form && nameInput) {
     form.addEventListener('submit', async (e) => {
