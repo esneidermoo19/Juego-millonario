@@ -240,6 +240,32 @@ function showAnswerFeedback(optionButtons, correctLetter) {
   });
 }
 
+// ─── Selección e Imagen del Presentador ────────────────────────────────
+function getSelectedPresenter() {
+  return localStorage.getItem('selected_presenter') || 'clasico';
+}
+
+function applySelectedPresenter() {
+  const charKey = getSelectedPresenter();
+  const charImages = {
+    clasico: 'assets/images/presentador-clasico.png',
+    terminator: 'assets/images/presentador-terminator.png',
+    masterchief: 'assets/images/presentador-masterchief.png',
+    james: 'assets/images/presentador-james.png'
+  };
+  const img = document.querySelector('.presenter-art');
+  if (img) {
+    img.src = charImages[charKey] || charImages.clasico;
+    const names = {
+      clasico: 'El Anfitrión Clásico',
+      terminator: 'Terminator T-800',
+      masterchief: 'Master Chief (Spartan 117)',
+      james: 'James Rodríguez'
+    };
+    img.alt = names[charKey] || 'Presentador del concurso';
+  }
+}
+
 // ─── Bocadillo de diálogo del presentador ─────────────────────────────
 function setPresenterMessage(key) {
   gameState.presenterMessageKey = key;
@@ -248,44 +274,156 @@ function setPresenterMessage(key) {
 
   const name = gameState.playerName;
   const isEnglish = window.getLanguage && window.getLanguage() === 'en';
-  const messages = {
-    welcome: isEnglish
-      ? `Welcome to the show, ${name}! Answer all 15 questions correctly to win.`
-      : `\u00a1Bienvenido al concurso, ${name}! Responde las 15 preguntas.`,
-    newquestion: isEnglish
-      ? `Alright ${name}, here comes your next question. Think carefully!`
-      : `Muy bien ${name}, aqu\u00ed viene tu siguiente pregunta. \u00a1Piensa con cuidado!`,
-    urgent10: isEnglish
-      ? `Hurry up, ${name}! Time is running out!`
-      : `\u00a1Ap\u00farate ${name}, se agota el tiempo!`,
-    urgent5: isEnglish
-      ? `Only seconds left, ${name}! Choose now!`
-      : `\u00a1Solo quedan segundos, ${name}! \u00a1Elige ya!`,
-    correct: isEnglish
-      ? 'Excellent! You move on to the next question.'
-      : '\u00a1Excelente! Pasas a la siguiente pregunta.',
-    incorrect: isEnglish
-      ? 'Unfortunately, that was not the correct option.'
-      : 'Lamentablemente esa no era la opci\u00f3n correcta.',
-    win: isEnglish
-      ? `Incredible, ${name}! You answered all 15 questions. You are a millionaire!`
-      : `\u00a1Incre\u00edble, ${name}! Has respondido las 15 preguntas. \u00a1Eres millonario!`,
-    timeout: isEnglish
-      ? `Time\u2019s up, ${name}! Thanks for playing.`
-      : `\u00a1Se acab\u00f3 el tiempo, ${name}! Gracias por jugar.`,
-    fifty: isEnglish
-      ? '50:50 activated. I\u2019ve removed two incorrect answers for you.'
-      : 'Comod\u00edn 50:50 activado. He eliminado dos respuestas incorrectas.',
-    audience: isEnglish
-      ? 'The audience has voted. Take a look at the results!'
-      : 'El p\u00fablico ya ha votado. \u00a1Observa sus respuestas!',
-    friend: isEnglish
-      ? 'Let\u2019s call your friend for some help.'
-      : 'Vamos a llamar a tu amigo para pedirle ayuda.'
+  const charKey = getSelectedPresenter();
+
+  const characterMessages = {
+    clasico: {
+      welcome: isEnglish
+        ? `Welcome to the show, ${name}! Answer all 15 questions correctly to win.`
+        : `¡Bienvenido al concurso, ${name}! Responde las 15 preguntas.`,
+      newquestion: isEnglish
+        ? `Alright ${name}, here comes your next question. Think carefully!`
+        : `Muy bien ${name}, aquí viene tu siguiente pregunta. ¡Piensa con cuidado!`,
+      urgent10: isEnglish
+        ? `Hurry up, ${name}! Time is running out!`
+        : `¡Apúrate ${name}, se agota el tiempo!`,
+      urgent5: isEnglish
+        ? `Only seconds left, ${name}! Choose now!`
+        : `¡Solo quedan segundos, ${name}! ¡Elige ya!`,
+      correct: isEnglish
+        ? 'Excellent! You move on to the next question.'
+        : '¡Excelente! Pasas a la siguiente pregunta.',
+      incorrect: isEnglish
+        ? 'Unfortunately, that was not the correct option.'
+        : 'Lamentablemente esa no era la opción correcta.',
+      win: isEnglish
+        ? `Incredible, ${name}! You answered all 15 questions. You are a millionaire!`
+        : `¡Increíble, ${name}! Has respondido las 15 preguntas. ¡Eres millonario!`,
+      timeout: isEnglish
+        ? `Time’s up, ${name}! Thanks for playing.`
+        : `¡Se acabó el tiempo, ${name}! Gracias por jugar.`,
+      fifty: isEnglish
+        ? '50:50 activated. I’ve removed two incorrect answers for you.'
+        : 'Comodín 50:50 activado. He eliminado dos respuestas incorrectas.',
+      audience: isEnglish
+        ? 'The audience has voted. Take a look at the results!'
+        : 'El público ya ha votado. ¡Observa sus respuestas!',
+      friend: isEnglish
+        ? 'Let’s call your friend for some help.'
+        : 'Vamos a llamar a tu amigo para pedirle ayuda.'
+    },
+    terminator: {
+      welcome: isEnglish
+        ? `Target identified: ${name}. Answer all 15 questions to conquer.`
+        : `Identificación confirmada: ${name}. Responde las 15 preguntas para vencer.`,
+      newquestion: isEnglish
+        ? `Next calculation ready, ${name}. Submit your response.`
+        : `Siguiente consulta para ${name}. Procesa tu respuesta.`,
+      urgent10: isEnglish
+        ? `Warning, ${name}! Time is running out!`
+        : `¡Apúrate ${name}, se agota el tiempo!`,
+      urgent5: isEnglish
+        ? `Critical timer, ${name}! Execute command immediately!`
+        : `¡Alerta crítica ${name}! ¡Tiempo a punto de expirar!`,
+      correct: isEnglish
+        ? 'Target achieved! You move on to the next question.'
+        : '¡Excelente! Pasas a la siguiente pregunta.',
+      incorrect: isEnglish
+        ? 'Unfortunately, that was not the correct option. Hasta la vista, baby.'
+        : 'Lamentablemente esa no era la opción correcta. Hasta la vista, baby.',
+      win: isEnglish
+        ? `Mission complete, ${name}. All 15 questions answered. Status: Millionaire.`
+        : `¡Misión cumplida, ${name}! 15 respuestas correctas. ¡Eres millonario!`,
+      timeout: isEnglish
+        ? `Timer expired for ${name}. Operation terminated.`
+        : `¡Se acabó el tiempo para ${name}! Operación terminada.`,
+      fifty: isEnglish
+        ? 'Tactical scan complete: 2 false options terminated.'
+        : 'Comodín 50:50: dos respuestas erróneas destruidas.',
+      audience: isEnglish
+        ? 'Audience consensus scan complete. Review data.'
+        : 'Datos de la multitud analizados. Revisa sus porcentajes.',
+      friend: isEnglish
+        ? 'Encrypted external communication link established.'
+        : 'Enlace de comunicación externa establecido con tu aliado.'
+    },
+    masterchief: {
+      welcome: isEnglish
+        ? `Chief reporting in, soldier ${name}. Answer all 15 questions to finish the fight.`
+        : `Aquí Jefe Maestro, soldado ${name}. Responde las 15 preguntas para ganar.`,
+      newquestion: isEnglish
+        ? `New waypoint loaded, ${name}. Keep your eyes sharp!`
+        : `Nuevo objetivo alcanzado, ${name}. ¡Mantén la concentración!`,
+      urgent10: isEnglish
+        ? `Move fast, ${name}! Time is running out!`
+        : `¡Apúrate ${name}, se agota el tiempo!`,
+      urgent5: isEnglish
+        ? `Shields depleted, ${name}! Fire your answer now!`
+        : `¡Poco tiempo soldado ${name}! ¡Elige tu respuesta ya!`,
+      correct: isEnglish
+        ? 'Direct hit, Spartan! You move on to the next question.'
+        : '¡Excelente! Pasas a la siguiente pregunta.',
+      incorrect: isEnglish
+        ? 'Unfortunately, that was not the correct option. Regrouping.'
+        : 'Lamentablemente esa no era la opción correcta. Misión fallida.',
+      win: isEnglish
+        ? `War won, ${name}! You completed all 15 objectives. You are a millionaire!`
+        : `¡Victoria absoluta, ${name}! Cumpliste los 15 objetivos. ¡Eres millonario!`,
+      timeout: isEnglish
+        ? `Clock ran out, soldier ${name}. Evac underway.`
+        : `¡Se acabó el tiempo, soldado ${name}! Extracción completada.`,
+      fifty: isEnglish
+        ? 'Targeting beacon activated: 2 incorrect options neutralized.'
+        : 'Apoyo táctico 50:50: dos opciones neutralizadas.',
+      audience: isEnglish
+        ? 'Recon coordinates incoming from audience.'
+        : 'Datos de reconocimiento de la audiencia en pantalla.',
+      friend: isEnglish
+        ? 'Comms channel opened to your squadmate.'
+        : 'Abriendo canal seguro de radio con tu aliado.'
+    },
+    james: {
+      welcome: isEnglish
+        ? `Welcome to the field, ${name}! Score all 15 questions with class.`
+        : `¡Bienvenido al concurso, ${name}! Responde las 15 preguntas con magia.`,
+      newquestion: isEnglish
+        ? `Here comes the next pass, ${name}. Put it in the top corner!`
+        : `¡Va el siguiente pase, ${name}! A definirla con categoría.`,
+      urgent10: isEnglish
+        ? `Hurry up, ${name}! Time is running out on the clock!`
+        : `¡Apúrate ${name}, se agota el tiempo!`,
+      urgent5: isEnglish
+        ? `Stoppage time, ${name}! Shoot now!`
+        : `¡Quedan segundos en el reloj, ${name}! ¡Remata ya!`,
+      correct: isEnglish
+        ? 'Golazo! You move on to the next question.'
+        : '¡Excelente! Pasas a la siguiente pregunta.',
+      incorrect: isEnglish
+        ? 'Unfortunately, that was not the correct option. Keep your head up!'
+        : 'Lamentablemente esa no era la opción correcta. ¡A levantar cabeza!',
+      win: isEnglish
+        ? `World champion, ${name}! 15 questions scored! You are a millionaire!`
+        : `¡Goooool y campeones, ${name}! 15 de 15. ¡Eres millonario!`,
+      timeout: isEnglish
+        ? `Final whistle, ${name}! Thanks for playing.`
+        : `¡Pitazo final, ${name}! Se acabó el tiempo del partido.`,
+      fifty: isEnglish
+        ? 'Precision play: 2 defenders cleared off the field.'
+        : 'Comodín 50:50: dos respuestas erróneas fuera de la cancha.',
+      audience: isEnglish
+        ? 'The stadium crowd made their call. Check out the results!'
+        : 'La hinchada ya se hizo sentir en la tribuna. ¡Mira los votos!',
+      friend: isEnglish
+        ? 'Passing the ball to your teammate for assistance.'
+        : 'Pase al compañero: vamos a llamar a tu amigo.'
+    }
   };
 
+  const currentDict = characterMessages[charKey] || characterMessages.clasico;
+  const messages = currentDict;
+
   el.classList.remove('message-update');
-  el.textContent = messages[key] || key;
+  el.textContent = messages[key] || characterMessages.clasico[key] || key;
   void el.offsetWidth;
   el.classList.add('message-update');
 }
@@ -305,6 +443,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   // 2. Elementos DOM
   const playerDisplay = document.getElementById('player-display');
   if (playerDisplay) playerDisplay.textContent = gameState.playerName;
+
+  // Aplicar personaje seleccionado
+  applySelectedPresenter();
 
   // 3. Restaurar progreso previo si el jugador recargó la página
   const restored = restoreProgress();
@@ -343,6 +484,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupLifelines();
   setupQuitFlow();
   setupModalCloses();
+  setupSettingsInGame();
 
   // 7. Alternar sonido en la cabecera del juego
   const btnSoundGame = document.getElementById('btn-sound-game');
@@ -742,6 +884,42 @@ function setupModalCloses() {
       const modalId = btn.getAttribute('data-close');
       const modal = document.getElementById(modalId);
       if (modal) modal.classList.remove('active');
+    });
+  });
+}
+
+function setupSettingsInGame() {
+  const btnSettings = document.getElementById('btn-settings-game');
+  if (btnSettings) {
+    btnSettings.addEventListener('click', () => {
+      openModal('modal-settings-game');
+      const current = getSelectedPresenter();
+      document.querySelectorAll('#characters-selector-game .character-card').forEach(card => {
+        const isCurrent = card.dataset.char === current;
+        card.classList.toggle('active', isCurrent);
+        card.setAttribute('aria-checked', isCurrent ? 'true' : 'false');
+      });
+    });
+  }
+
+  document.querySelectorAll('#characters-selector-game .character-card').forEach(card => {
+    card.addEventListener('click', () => {
+      const selected = card.dataset.char;
+      localStorage.setItem('selected_presenter', selected);
+      document.querySelectorAll('#characters-selector-game .character-card').forEach(c => {
+        const active = c === card;
+        c.classList.toggle('active', active);
+        c.setAttribute('aria-checked', active ? 'true' : 'false');
+      });
+      applySelectedPresenter();
+      setPresenterMessage(gameState.presenterMessageKey || 'welcome');
+      const names = {
+        clasico: 'El Anfitrión Clásico',
+        terminator: 'Terminator T-800',
+        masterchief: 'Master Chief (Spartan 117)',
+        james: 'James Rodríguez'
+      };
+      showToast(`Presentador: ${names[selected] || selected}`, 'info');
     });
   });
 }

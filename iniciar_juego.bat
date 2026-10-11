@@ -16,6 +16,7 @@ if not exist ".venv\Scripts\python.exe" (
 .venv\Scripts\python.exe -m pip install -r backend\requirements.txt
 if errorlevel 1 goto :error
 
+start "" "http://localhost:5000"
 .venv\Scripts\python.exe -m backend.app
 pause
 exit /b 0

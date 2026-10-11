@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 
 from flask import Flask, jsonify
+from dotenv import load_dotenv
 
 from .database import init_database
 from .routes.games import games_bp
@@ -10,6 +11,8 @@ from .routes.lifelines import lifelines_bp
 from .routes.players import players_bp
 from .routes.questions import questions_bp
 from .routes.ranking import ranking_bp
+
+load_dotenv()
 
 
 def create_app(test_config: dict[str, object] | None = None) -> Flask:

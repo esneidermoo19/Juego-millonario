@@ -71,6 +71,31 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // Selección de Personaje en Configuración
+  const charButtons = document.querySelectorAll('.character-card');
+  const savedChar = localStorage.getItem('selected_presenter') || 'clasico';
+  charButtons.forEach(btn => {
+    const isCurrent = btn.dataset.char === savedChar;
+    btn.classList.toggle('active', isCurrent);
+    btn.setAttribute('aria-checked', isCurrent ? 'true' : 'false');
+    btn.addEventListener('click', () => {
+      const selected = btn.dataset.char;
+      localStorage.setItem('selected_presenter', selected);
+      charButtons.forEach(b => {
+        const active = b === btn;
+        b.classList.toggle('active', active);
+        b.setAttribute('aria-checked', active ? 'true' : 'false');
+      });
+      const names = {
+        clasico: 'El Anfitrión Clásico',
+        terminator: 'Terminator T-800',
+        masterchief: 'Master Chief (Spartan 117)',
+        james: 'James Rodríguez'
+      };
+      showToast(`Presentador: ${names[selected] || selected}`, 'info');
+    });
+  });
+
   // Iniciar Juego (Validación + Llamadas a API)
   if (form && nameInput) {
     form.addEventListener('submit', async (e) => {

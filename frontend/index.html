@@ -60,11 +60,59 @@
   </div>
 
   <div id="settings-modal" class="modal-backdrop" aria-hidden="true">
-    <section class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+    <section class="modal-dialog modal-dialog--wide" role="dialog" aria-modal="true" aria-labelledby="settings-title">
       <div class="modal-header">
         <h2 id="settings-title" class="modal-title">Configuración</h2>
         <button type="button" class="modal-close-btn" data-modal-close="settings-modal" aria-label="Cerrar">&times;</button>
       </div>
+
+      <!-- Selector de Personajes / Presentador -->
+      <div class="settings-section">
+        <h3 class="settings-subtitle">Elegir Presentador</h3>
+        <p class="settings-desc">Selecciona quién conducirá tu concurso:</p>
+        <div class="characters-grid" id="characters-selector" role="radiogroup" aria-label="Seleccionar presentador">
+          <button type="button" class="character-card active" data-char="clasico" role="radio" aria-checked="true">
+            <div class="character-avatar-wrap">
+              <img src="assets/images/presentador-clasico.png" alt="El Anfitrión" class="character-avatar-img">
+            </div>
+            <div class="character-info">
+              <span class="character-name">El Anfitrión</span>
+              <span class="character-badge">Clásico</span>
+            </div>
+          </button>
+
+          <button type="button" class="character-card" data-char="terminator" role="radio" aria-checked="false">
+            <div class="character-avatar-wrap">
+              <img src="assets/images/presentador-terminator.png" alt="Terminator T-800" class="character-avatar-img">
+            </div>
+            <div class="character-info">
+              <span class="character-name">Terminator</span>
+              <span class="character-badge badge-cyber">T-800</span>
+            </div>
+          </button>
+
+          <button type="button" class="character-card" data-char="masterchief" role="radio" aria-checked="false">
+            <div class="character-avatar-wrap">
+              <img src="assets/images/presentador-masterchief.png" alt="Master Chief" class="character-avatar-img">
+            </div>
+            <div class="character-info">
+              <span class="character-name">Master Chief</span>
+              <span class="character-badge badge-spartan">Halo 117</span>
+            </div>
+          </button>
+
+          <button type="button" class="character-card" data-char="james" role="radio" aria-checked="false">
+            <div class="character-avatar-wrap">
+              <img src="assets/images/presentador-james.png" alt="James Rodríguez" class="character-avatar-img">
+            </div>
+            <div class="character-info">
+              <span class="character-name">James R.</span>
+              <span class="character-badge badge-gold">El '10'</span>
+            </div>
+          </button>
+        </div>
+      </div>
+
       <div class="settings-actions">
         <button id="language-toggle" class="btn btn-secondary" type="button">English</button>
         <button id="btn-sound" class="btn btn-secondary settings-sound" type="button" aria-label="Silenciar sonido">

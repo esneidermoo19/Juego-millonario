@@ -38,6 +38,7 @@
       <div class="header-actions">
         <button id="language-toggle" class="btn btn-secondary" type="button">English</button>
         <button id="btn-sound-game" class="icon-btn" title="Sonido" aria-label="Sonido">🔊</button>
+        <button id="btn-settings-game" class="icon-btn" title="Configuración / Personajes" aria-label="Configuración">⚙️</button>
         <button id="btn-quit" class="btn btn-danger" style="padding: 0.6rem 1.2rem; font-size: 0.9rem;">
           🚪 Retirarse
         </button>
@@ -199,6 +200,63 @@
         <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 2rem;">
           <button class="btn btn-secondary" data-close="modal-confirm-quit" style="padding: 0.75rem 1.25rem;">Seguir Jugando</button>
           <button id="btn-confirm-quit-action" class="btn btn-danger" style="padding: 0.75rem 1.25rem;">Confirmar Retirada</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal de Configuración y Cambio de Personaje en Vivo -->
+    <div id="modal-settings-game" class="modal-backdrop">
+      <div class="modal-dialog modal-dialog--wide">
+        <div class="modal-header">
+          <h2 class="modal-title">⚙️ Cambiar Presentador</h2>
+          <button class="modal-close-btn" data-close="modal-settings-game">&times;</button>
+        </div>
+        <div class="settings-section">
+          <p class="settings-desc">Elige quién conducirá el programa:</p>
+          <div class="characters-grid" id="characters-selector-game" role="radiogroup" aria-label="Seleccionar presentador">
+            <button type="button" class="character-card active" data-char="clasico" role="radio" aria-checked="true">
+              <div class="character-avatar-wrap">
+                <img src="assets/images/presentador-clasico.png" alt="El Anfitrión" class="character-avatar-img">
+              </div>
+              <div class="character-info">
+                <span class="character-name">El Anfitrión</span>
+                <span class="character-badge">Clásico</span>
+              </div>
+            </button>
+
+            <button type="button" class="character-card" data-char="terminator" role="radio" aria-checked="false">
+              <div class="character-avatar-wrap">
+                <img src="assets/images/presentador-terminator.png" alt="Terminator T-800" class="character-avatar-img">
+              </div>
+              <div class="character-info">
+                <span class="character-name">Terminator</span>
+                <span class="character-badge badge-cyber">T-800</span>
+              </div>
+            </button>
+
+            <button type="button" class="character-card" data-char="masterchief" role="radio" aria-checked="false">
+              <div class="character-avatar-wrap">
+                <img src="assets/images/presentador-masterchief.png" alt="Master Chief" class="character-avatar-img">
+              </div>
+              <div class="character-info">
+                <span class="character-name">Master Chief</span>
+                <span class="character-badge badge-spartan">Halo 117</span>
+              </div>
+            </button>
+
+            <button type="button" class="character-card" data-char="james" role="radio" aria-checked="false">
+              <div class="character-avatar-wrap">
+                <img src="assets/images/presentador-james.png" alt="James Rodríguez" class="character-avatar-img">
+              </div>
+              <div class="character-info">
+                <span class="character-name">James R.</span>
+                <span class="character-badge badge-gold">El '10'</span>
+              </div>
+            </button>
+          </div>
+        </div>
+        <div style="text-align: right; margin-top: 1.25rem;">
+          <button class="btn btn-primary" data-close="modal-settings-game" style="padding: 0.65rem 1.4rem;">Listo</button>
         </div>
       </div>
     </div>
