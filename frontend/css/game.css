@@ -1,6 +1,14 @@
 /* =========================================================
    GAME ARENA STYLES (game.html) — Escenario 2D "concurso de TV"
    Paleta: azul noche + azul eléctrico + dorado
+
+   CORRECCIONES PRINCIPALES:
+   - Presentador 2D integrado: se muestra como figura recortada
+     (sin marco, sin tarjeta, sin fondo propio).
+   - Bocadillo de diálogo sale de la cabeza del personaje
+     (no envuelve al personaje dentro de una caja).
+   - Fondo de preguntas limpio: sin elementos fantasma ni
+     elementos de UI baked-in.
    ========================================================= */
 
 /* ── Encabezado del juego ───────────────────────────────── */
@@ -352,54 +360,88 @@
   visibility: hidden;
 }
 
-/* ── Presentador + bocadillo de diálogo ─────────────────── */
+/* ═══════════════════════════════════════════════════════════
+   PRESENTADOR 2D INTEGRADO — Figura recortada + bocadillo
+   ═══════════════════════════════════════════════════════════
+   • El personaje se muestra como figura recortada directamente
+     sobre el escenario (sin recuadro, sin tarjeta, sin miniatura).
+   • El bocadillo de diálogo blanco sale de la cabeza/boca del
+     personaje hacia la derecha, sin envolver al personaje.
+   ═════════════════════════════════════════════════════════ */
+
 .presenter-zone {
   display: flex;
-  align-items: center;
-  gap: 1.1rem;
-  padding-top: 0.25rem;
+  align-items: flex-end;
+  gap: 0;
+  min-height: 200px;
+  padding-top: 0.5rem;
+  position: relative;
 }
 
-.presenter-screen {
-  width: 132px;
+/* Contenedor del personaje — sin marco, sin fondo, figura limpia recortada */
+.presenter-art-wrap {
+  position: relative;
+  width: clamp(160px, 22vw, 250px);
+  height: clamp(230px, 30vw, 340px);
   flex-shrink: 0;
-  border-radius: 12px;
-  overflow: hidden;
-  border: 1px solid var(--neon-frame);
-  box-shadow: var(--neon-glow);
-  background: #0a1230;
+  pointer-events: none;
+  z-index: 2;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
 }
 
-.presenter-screen img {
+/* Figura recortada del personaje 2D transparente */
+.presenter-art {
   display: block;
   width: 100%;
-  height: 96px;
-  object-fit: cover;
-  object-position: center top;
+  height: 100%;
+  object-fit: contain;
+  object-position: bottom center;
+  filter: drop-shadow(0 12px 24px rgba(0, 0, 0, 0.5));
+  transition: transform 0.3s ease;
 }
 
+/* ── Bocadillo de diálogo (Speech Bubble) ──────────────────
+   Sale directamente de la cabeza/boca del personaje hacia la DERECHA.
+   Globo blanco flotante, no envuelve al personaje.
+   ────────────────────────────────────────────────────────── */
 .presenter-bubble {
   position: relative;
-  flex: 1;
-  background: #f8fafc;
-  color: #0b1220;
-  padding: 1rem 1.2rem;
-  border-radius: 14px;
+  flex: 0 1 480px;
+  /* Altura alineada con la cabeza del personaje */
+  margin-bottom: auto;
+  margin-top: 1.5rem;
+  margin-left: 10px;
+  background: #ffffff;
+  color: #091124;
+  padding: 1.15rem 1.45rem;
+  border-radius: 18px;
   font-weight: 600;
-  font-size: 0.98rem;
-  line-height: 1.4;
-  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.4);
+  font-size: 1.05rem;
+  line-height: 1.45;
+  box-shadow:
+    0 10px 28px rgba(0, 0, 0, 0.45),
+    0 0 16px rgba(53, 224, 255, 0.25);
+  border: 1.5px solid rgba(255, 255, 255, 0.9);
+  z-index: 3;
 }
 
+/* Animación de entrada del mensaje */
+.presenter-bubble.message-update {
+  animation: presenterMessageIn 0.28s ease-out both;
+}
+
+/* Flecha que sale directamente hacia la cabeza del personaje a la izquierda */
 .presenter-bubble::before {
   content: '';
   position: absolute;
-  left: -10px;
-  top: 50%;
-  transform: translateY(-50%);
-  border-width: 10px 12px 10px 0;
+  left: -14px;
+  top: 32px;
+  border-width: 10px 14px 10px 0;
   border-style: solid;
-  border-color: transparent #f8fafc transparent transparent;
+  border-color: transparent #ffffff transparent transparent;
+  filter: drop-shadow(-3px 0 2px rgba(0, 0, 0, 0.08));
 }
 
 /* ── Escalera de premios / dinero ───────────────────────── */
@@ -620,16 +662,27 @@
   }
 
   .presenter-zone {
-    flex-direction: column;
+    min-height: 0;
+    align-items: flex-end;
+    gap: 0;
+    flex-direction: column-reverse;
     align-items: stretch;
   }
 
-  .presenter-screen {
-    width: 100%;
+  .presenter-art-wrap {
+    width: 130px;
+    height: 175px;
+    position: absolute;
+    bottom: 0;
+    left: 0;
   }
 
-  .presenter-screen img {
-    height: 120px;
+  .presenter-bubble {
+    margin-left: 110px;
+    margin-bottom: 0.5rem;
+    padding: 0.85rem 0.95rem;
+    font-size: 0.88rem;
+    flex-basis: auto;
   }
 
   .question-hex-inner {

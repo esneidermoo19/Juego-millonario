@@ -8,7 +8,7 @@
   <link rel="stylesheet" href="css/game.css">
   <link rel="stylesheet" href="css/animations.css">
 </head>
-<body>
+<body class="game-screen">
   <!-- Escenario ilustrado 2D de fondo (sin presentador) -->
   <div class="stage-backdrop" aria-hidden="true"></div>
   <div class="spotlight-sweep" aria-hidden="true"></div>
@@ -119,13 +119,13 @@
           </button>
         </div>
 
-        <!-- Presentador + Bocadillo de Diálogo -->
+        <!-- Presentador 2D recortado transparente + Bocadillo de Diálogo -->
         <div class="presenter-zone">
-          <div class="presenter-screen screen-glow">
-            <img src="assets/images/escenario-presentador-2d.png" alt="Presentador del concurso" loading="lazy">
+          <div class="presenter-art-wrap" aria-hidden="true">
+            <img class="presenter-art" src="assets/images/presentador-2d.png" alt="Presentador del concurso" loading="eager">
           </div>
           <div class="presenter-bubble" role="status" aria-live="polite">
-            <p id="presenter-message">¡Bienvenido al concurso! Responde las preguntas y escala hasta el millón.</p>
+            <p id="presenter-message">¡Bienvenido al concurso! Responde las 15 preguntas.</p>
           </div>
         </div>
       </div>

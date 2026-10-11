@@ -76,7 +76,10 @@ let gameState = {
   timerInterval: null,
   timerDeadline: null,
   timerQuestionId: null,
-  timerExpired: false
+  timerExpired: false,
+  timerTenSecondWarningShown: false,
+  timerFiveSecondWarningShown: false,
+  presenterMessageKey: 'welcome'
 };
 
 // Escala estándar de 15 premios
@@ -150,6 +153,8 @@ window.addEventListener('pageshow', (event) => {
 function startQuestionTimer(questionId) {
   gameState.timerQuestionId = questionId;
   gameState.timerExpired = false;
+  gameState.timerTenSecondWarningShown = false;
+  gameState.timerFiveSecondWarningShown = false;
   gameState.timerDeadline = Date.now() + QUESTION_TIME_SECONDS * 1000;
   scheduleQuestionTimer(questionId);
 }
@@ -182,13 +187,21 @@ function updateQuestionTimer(secondsLeft) {
     ring.style.setProperty('--timer-pct', pct + '%');
     ring.classList.toggle('urgent', secondsLeft <= 10);
   }
+  if (secondsLeft <= 5 && !gameState.timerFiveSecondWarningShown) {
+    gameState.timerFiveSecondWarningShown = true;
+    gameState.timerTenSecondWarningShown = true;
+    setPresenterMessage('urgent5');
+  } else if (secondsLeft <= 10 && !gameState.timerTenSecondWarningShown) {
+    gameState.timerTenSecondWarningShown = true;
+    setPresenterMessage('urgent10');
+  }
 }
 
 async function handleQuestionTimeout(questionId) {
   if (gameState.answering || gameState.timerExpired || gameState.questions[gameState.questionIndex]?.id !== questionId) return;
   gameState.timerExpired = true;
   gameState.answering = true;
-  setPresenterMessage('⏰ ¡Se ha agotado el tiempo!');
+  setPresenterMessage('timeout');
   try {
     const result = await window.api.timeout(gameState.gameId, questionId);
     showTimeoutLoss(result.prize);
@@ -228,9 +241,53 @@ function showAnswerFeedback(optionButtons, correctLetter) {
 }
 
 // ─── Bocadillo de diálogo del presentador ─────────────────────────────
-function setPresenterMessage(text) {
+function setPresenterMessage(key) {
+  gameState.presenterMessageKey = key;
   const el = document.getElementById('presenter-message');
-  if (el) el.textContent = text;
+  if (!el) return;
+
+  const name = gameState.playerName;
+  const isEnglish = window.getLanguage && window.getLanguage() === 'en';
+  const messages = {
+    welcome: isEnglish
+      ? `Welcome to the show, ${name}! Answer all 15 questions correctly to win.`
+      : `\u00a1Bienvenido al concurso, ${name}! Responde las 15 preguntas.`,
+    newquestion: isEnglish
+      ? `Alright ${name}, here comes your next question. Think carefully!`
+      : `Muy bien ${name}, aqu\u00ed viene tu siguiente pregunta. \u00a1Piensa con cuidado!`,
+    urgent10: isEnglish
+      ? `Hurry up, ${name}! Time is running out!`
+      : `\u00a1Ap\u00farate ${name}, se agota el tiempo!`,
+    urgent5: isEnglish
+      ? `Only seconds left, ${name}! Choose now!`
+      : `\u00a1Solo quedan segundos, ${name}! \u00a1Elige ya!`,
+    correct: isEnglish
+      ? 'Excellent! You move on to the next question.'
+      : '\u00a1Excelente! Pasas a la siguiente pregunta.',
+    incorrect: isEnglish
+      ? 'Unfortunately, that was not the correct option.'
+      : 'Lamentablemente esa no era la opci\u00f3n correcta.',
+    win: isEnglish
+      ? `Incredible, ${name}! You answered all 15 questions. You are a millionaire!`
+      : `\u00a1Incre\u00edble, ${name}! Has respondido las 15 preguntas. \u00a1Eres millonario!`,
+    timeout: isEnglish
+      ? `Time\u2019s up, ${name}! Thanks for playing.`
+      : `\u00a1Se acab\u00f3 el tiempo, ${name}! Gracias por jugar.`,
+    fifty: isEnglish
+      ? '50:50 activated. I\u2019ve removed two incorrect answers for you.'
+      : 'Comod\u00edn 50:50 activado. He eliminado dos respuestas incorrectas.',
+    audience: isEnglish
+      ? 'The audience has voted. Take a look at the results!'
+      : 'El p\u00fablico ya ha votado. \u00a1Observa sus respuestas!',
+    friend: isEnglish
+      ? 'Let\u2019s call your friend for some help.'
+      : 'Vamos a llamar a tu amigo para pedirle ayuda.'
+  };
+
+  el.classList.remove('message-update');
+  el.textContent = messages[key] || key;
+  void el.offsetWidth;
+  el.classList.add('message-update');
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -266,7 +323,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     renderCurrentQuestion();
-    setPresenterMessage(`¡Bienvenido al concurso, ${gameState.playerName}! Responde las 15 preguntas para llevarte el gran premio.`);
+    setPresenterMessage('welcome');
 
     if (restored) {
       applyRestoredLifelineState();
@@ -346,6 +403,7 @@ function setupLanguageChange() {
       if (requestNumber !== languageRequest || event.detail.language !== window.getLanguage()) return;
       gameState.questions = data.questions || [];
       renderCurrentQuestion();
+      setPresenterMessage(gameState.presenterMessageKey || 'welcome');
     } catch (error) {
       if (requestNumber !== languageRequest) return;
       showToast(error.message || 'Could not load questions in the selected language.', 'error');
@@ -359,7 +417,10 @@ function renderCurrentQuestion() {
   if (!q) return;
 
   gameState.answering = false;
-  if (gameState.timerQuestionId !== q.id) startQuestionTimer(q.id);
+  if (gameState.timerQuestionId !== q.id) {
+    startQuestionTimer(q.id);
+    setPresenterMessage(gameState.questionIndex === 0 ? 'welcome' : 'newquestion');
+  }
 
   // Actualizar Contador y Premios
   const questionNumDisplay = document.getElementById('question-num-display');
@@ -449,7 +510,7 @@ function setupOptionListeners() {
 
           if (result.game_finished) {
             // ¡Victoria Total! (el backend ya cierra la partida)
-            setPresenterMessage('¡Increíble! Has respondido las 15 preguntas. ¡Eres millonario! 🎉');
+            setPresenterMessage('win');
             clearProgress();
 
             sessionStorage.setItem('game_result', JSON.stringify({
@@ -462,7 +523,7 @@ function setupOptionListeners() {
             setTimeout(() => window.location.href = 'results.html', ANSWER_FEEDBACK_MS);
           } else {
             // Avanzar a la siguiente pregunta (espera para ver el color verde)
-            setPresenterMessage('¡Respuesta correcta! Muy bien. Continuamos.');
+            setPresenterMessage('correct');
             setTimeout(() => {
               gameState.questionIndex++;
               saveProgress();
@@ -473,7 +534,7 @@ function setupOptionListeners() {
         } else {
           // Respuesta Incorrecta (Derrota)
           SoundFX.wrong();
-          setPresenterMessage(`Vaya... Respuesta incorrecta. La correcta era la ${result.correct_answer || 'otra'}.`);
+          setPresenterMessage('incorrect');
           clearProgress();
           showLossResult(result.prize);
         }
@@ -530,7 +591,7 @@ function setupLifelines() {
             }
           });
         }
-        setPresenterMessage('Comodín 50:50 activado. He eliminado dos respuestas incorrectas.');
+        setPresenterMessage('fifty');
       } catch (error) {
         handleLifelineError(error, btn5050, 'fiftyFifty');
       }
@@ -551,7 +612,7 @@ function setupLifelines() {
         saveProgress();
 
         renderAudienceChart(res.percentages || { A: 25, B: 25, C: 25, D: 25 });
-        setPresenterMessage('Hemos preguntado al público. Mira los porcentajes de la votación.');
+        setPresenterMessage('audience');
         openModal('modal-audience');
       } catch (error) {
         handleLifelineError(error, btnAudience, 'audience');
@@ -576,7 +637,7 @@ function setupLifelines() {
         if (friendMsgEl) {
           friendMsgEl.textContent = `"${res.message || 'Creo que deberías revisar bien las opciones antes de responder.'}"`;
         }
-        setPresenterMessage('Estamos llamando a tu amigo de confianza para que te ayude.');
+        setPresenterMessage('friend');
         openModal('modal-friend');
       } catch (error) {
         handleLifelineError(error, btnFriend, 'friend');

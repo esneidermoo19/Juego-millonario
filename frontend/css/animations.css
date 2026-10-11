@@ -72,6 +72,17 @@
   }
 }
 
+@keyframes presenterMessageIn {
+  from {
+    opacity: 0.65;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @keyframes pulseGlowGold {
   0%, 100% {
     box-shadow: 0 0 15px rgba(243, 156, 18, 0.4);
