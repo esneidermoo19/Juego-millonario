@@ -7,36 +7,63 @@ document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('start-game-form');
   const nameInput = document.getElementById('player-name');
   const btnPlay = document.getElementById('btn-play');
+  const playerModal = document.getElementById('player-modal');
+  const settingsModal = document.getElementById('settings-modal');
+  const btnOpenPlayer = document.getElementById('btn-open-player-modal');
+  const btnOpenSettings = document.getElementById('btn-open-settings');
 
-  // Modal de Instrucciones
-  const instructionsModal = document.getElementById('instructions-modal');
-  const btnOpenInstructions = document.getElementById('btn-open-instructions');
-  const btnCloseInstructions = document.getElementById('btn-close-instructions');
-  const btnGotIt = document.getElementById('btn-got-it');
-
-  if (btnOpenInstructions && instructionsModal) {
-    btnOpenInstructions.addEventListener('click', () => {
-      instructionsModal.classList.add('active');
-    });
-  }
-
-  const closeModal = () => {
-    if (instructionsModal) instructionsModal.classList.remove('active');
+  const openModal = (modal, focusTarget) => {
+    if (!modal) return;
+    modal.classList.add('active');
+    modal.setAttribute('aria-hidden', 'false');
+    if (focusTarget) window.setTimeout(() => focusTarget.focus(), 80);
   };
 
-  if (btnCloseInstructions) btnCloseInstructions.addEventListener('click', closeModal);
-  if (btnGotIt) btnGotIt.addEventListener('click', closeModal);
+  const closeModal = (modal) => {
+    if (!modal) return;
+    modal.classList.remove('active');
+    modal.setAttribute('aria-hidden', 'true');
+  };
+
+  if (btnOpenPlayer) {
+    btnOpenPlayer.addEventListener('click', () => openModal(playerModal, nameInput));
+  }
+  if (btnOpenSettings) {
+    btnOpenSettings.addEventListener('click', () => openModal(settingsModal, document.getElementById('language-toggle')));
+  }
+
+  document.querySelectorAll('[data-modal-close]').forEach((button) => {
+    button.addEventListener('click', () => closeModal(document.getElementById(button.dataset.modalClose)));
+  });
+  [playerModal, settingsModal].forEach((modal) => {
+    if (modal) {
+      modal.addEventListener('click', (event) => {
+        if (event.target === modal) closeModal(modal);
+      });
+    }
+  });
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') {
+      closeModal(playerModal);
+      closeModal(settingsModal);
+    }
+  });
 
   // Alternar sonido (preferencia persistente en localStorage)
   const btnSound = document.getElementById('btn-sound');
+  const soundIcon = btnSound && btnSound.querySelector('.settings-sound-icon');
   const updateSoundIcon = () => {
     if (!btnSound) return;
     const muted = localStorage.getItem('mute_audio') === '1';
-    btnSound.textContent = muted ? '🔇' : '🔊';
-    btnSound.setAttribute('aria-label', muted ? 'Activar sonido' : 'Silenciar sonido');
+    if (soundIcon) soundIcon.textContent = muted ? '🔇' : '🔊';
+    const isEnglish = window.getLanguage && window.getLanguage() === 'en';
+    btnSound.setAttribute('aria-label', muted
+      ? (isEnglish ? 'Enable sound' : 'Activar sonido')
+      : (isEnglish ? 'Mute sound' : 'Silenciar sonido'));
   };
   if (btnSound) {
     updateSoundIcon();
+    window.addEventListener('languagechange', updateSoundIcon);
     btnSound.addEventListener('click', () => {
       const muted = localStorage.getItem('mute_audio') === '1';
       localStorage.setItem('mute_audio', muted ? '0' : '1');
@@ -108,7 +135,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       } finally {
         btnPlay.disabled = false;
-        btnPlay.textContent = '🎮 JUGAR AHORA';
+        btnPlay.textContent = 'COMENZAR';
       }
     });
   }
